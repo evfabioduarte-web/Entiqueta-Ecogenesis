@@ -3,279 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MVP - Entiqueta RFID (Com Captura de Imagem JPG)</title>
+    <title>Enriqueta RFID - Captura JPG & Leitura</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1"></script>
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg: #f9fafb;
-            --card-bg: #ffffff;
-            --text: #1f2937;
-            --border: #e5e7eb;
-            --accent: #059669;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 16px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
-        h1 {
-            font-size: 1.5rem;
-            color: var(--primary);
-            margin-bottom: 4px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 10px 16px;
-            font-size: 1rem;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 8px;
-            font-weight: 600;
-        }
-
-        button:hover {
-            background-color: var(--primary-hover);
-        }
-
-        button.secondary {
-            background-color: #6b7280;
-        }
-
-        button.secondary:hover {
-            background-color: #4b5563;
-        }
-
-        button.ai-btn {
-            background-color: var(--accent);
-        }
-
-        button.ai-btn:hover {
-            background-color: #047857;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 10px;
-            margin-top: 6px;
-            margin-bottom: 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-
-        label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #4b5563;
-        }
-
-        .row {
-            display: flex;
-            gap: 12px;
-        }
-
-        .col {
-            flex: 1;
-        }
-
-        #reader {
-            width: 100%;
-            border-radius: 6px;
-            overflow: hidden;
-            margin-bottom: 12px;
-            display: none;
-        }
-
-        #ai-status {
-            font-size: 0.875rem;
-            color: var(--accent);
-            font-weight: 600;
-            margin-top: 6px;
-            text-align: center;
-        }
-
-        .preview-container {
-            text-align: center;
-            margin-top: 10px;
-        }
-
-        .preview-container img {
-            max-width: 120px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            display: none;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.875rem;
-            margin-top: 12px;
-        }
-
-        th, td {
-            border: 1px solid var(--border);
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f3f4f6;
-        }
-
-        .table-responsive {
-            overflow-x: auto;
-        }
+        :root { --primary: #4f46e5; --bg: #f9fafb; --card: #ffffff; --text: #1f2937; --border: #e5e7eb; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 16px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+        h2, h3 { color: var(--primary); margin-top: 0; }
+        button { background: var(--primary); color: white; border: none; border-radius: 6px; padding: 12px; font-size: 1rem; width: 100%; font-weight: bold; cursor: pointer; margin-top: 8px; }
+        button.sec { background: #6b7280; }
+        input { width: 100%; padding: 10px; margin: 6px 0 12px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; }
+        .row { display: flex; gap: 10px; }
+        .col { flex: 1; }
+        #reader { width: 100%; margin-bottom: 12px; display: none; }
+        #preview { max-width: 100px; max-height: 100px; border-radius: 6px; display: none; margin-top: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+        th, td { border: 1px solid var(--border); padding: 6px; text-align: left; }
+        th { background: #f3f4f6; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <h1>Ecogenesis RFID</h1>
-        <p>MVP - IA, Auto-Preenchimento e Captura de Imagem JPG</p>
-    </header>
-
-    <!-- Seção da Câmera -->
     <div class="card">
-        <h3>📷 Modos de Leitura Inteligente</h3>
-        <button id="btn-start-camera" onclick="iniciarCameraBarcode()">Ler Código de Barras</button>
+        <h2>Enriqueta RFID</h2>
+        <button onclick="iniciarLeitor()">📷 Ler Código de Barras</button>
         <div id="reader"></div>
-        <button id="btn-stop-camera" class="secondary" onclick="pararCameraBarcode()" style="display:none;">Parar Leitor</button>
-        
-        <hr style="margin: 16px 0; border: 0; border-top: 1px solid var(--border);">
-
-        <button class="ai-btn" onclick="identificarObjetoEPreencher()">✨ Identificar Objeto, Preencher e Capturar Foto</button>
-        <div id="ai-status"></div>
-        <video id="webcam" autoplay playsinline style="display:none; width:100%; max-height:200px; border-radius:6px; margin-top:8px; object-fit: cover;"></video>
-        <canvas id="canvas-foto" style="display:none;"></canvas>
+        <button id="btn-stop" class="sec" onclick="pararLeitor()" style="display:none;">Parar Leitor</button>
     </div>
 
-    <!-- Seção de Cadastro -->
     <div class="card">
-        <h3>📦 Cadastro de Produto</h3>
-        <form id="product-form" onsubmit="salvarProduto(event)">
-            <label for="codigo">Código do Produto</label>
-            <input type="text" id="codigo" required>
+        <h3>📦 Cadastrar Produto</h3>
+        <form onsubmit="salvar(event)">
+            <label>Código do Produto</label>
+            <input type="text" id="codigo" required placeholder="Digite ou leia o código">
 
-            <label for="descricao">Descrição (Produto)</label>
-            <input type="text" id="descricao" required>
+            <label>Descrição / Produto</label>
+            <input type="text" id="descricao" required placeholder="Ex: Caderno A5">
 
             <div class="row">
-                <div class="col">
-                    <label for="categoria">Categoria</label>
-                    <input type="text" id="categoria" required>
-                </div>
-                <div class="col">
-                    <label for="marca">Marca</label>
-                    <input type="text" id="marca">
-                </div>
+                <div class="col"><label>Categoria</label><input type="text" id="categoria" value="Geral"></div>
+                <div class="col"><label>Marca</label><input type="text" id="marca" value="Genérica"></div>
             </div>
 
             <div class="row">
-                <div class="col">
-                    <label for="quantidade">Quantidade</label>
-                    <input type="number" id="quantidade" value="1" required>
-                </div>
-                <div class="col">
-                    <label for="corredor">Corredor</label>
-                    <input type="text" id="corredor" value="Geral">
-                </div>
+                <div class="col"><label>Qtd</label><input type="number" id="qtd" value="1"></div>
+                <div class="col"><label>Preço (€)</label><input type="number" step="0.01" id="preco" value="0.00"></div>
             </div>
 
-            <div class="row">
-                <div class="col">
-                    <label for="prateleira">Prateleira</label>
-                    <input type="text" id="prateleira" value="A1">
-                </div>
-                <div class="col">
-                    <label for="posicao">Posição</label>
-                    <input type="text" id="posicao" value="01">
-                </div>
-            </div>
+            <label>📷 Foto do Produto (JPG)</label>
+            <input type="file" id="foto-input" accept="image/jpeg, image/png" capture="environment" onchange="carregarFoto(event)">
+            <img id="preview" alt="Pré-visualização">
+            <input type="hidden" id="foto-base64">
 
-            <div class="row">
-                <div class="col">
-                    <label for="compra">Valor de Compra (€)</label>
-                    <input type="number" step="0.01" id="compra" value="0.00">
-                </div>
-                <div class="col">
-                    <label for="venda">Valor de Venda (€)</label>
-                    <input type="number" step="0.01" id="venda" value="0.00">
-                </div>
-            </div>
-
-            <!-- Campo oculto/armazenado para a imagem JPG -->
-            <input type="hidden" id="foto-jpg" value="">
-            
-            <div class="preview-container">
-                <img id="img-preview" alt="Pré-visualização da Foto">
-            </div>
-
-            <button type="submit">Salvar Produto no Estoque</button>
+            <button type="submit">Salvar na Planilha</button>
         </form>
     </div>
 
-    <!-- Seção de Estoque e Pesquisa -->
     <div class="card">
-        <h3>📈 Controle de Estoque</h3>
-        <input type="text" id="pesquisa" placeholder="Pesquisar por código, produto ou marca..." onkeyup="pesquisarProdutos()">
-        
-        <button class="secondary" onclick="exportarCSV()">📊 Exportar para CSV (Excel)</button>
-
-        <div class="table-responsive">
-            <table id="tabela-produtos">
+        <h3>📊 Estoque</h3>
+        <button class="sec" onclick="exportarCSV()">📥 Exportar para CSV (Excel)</button>
+        <div style="overflow-x:auto;">
+            <table id="tabela">
                 <thead>
-                    <tr>
-                        <th>Foto</th>
-                        <th>Código</th>
-                        <th>Produto</th>
-                        <th>Categoria</th>
-                        <th>Marca</th>
-                        <th>Qtd</th>
-                        <th>Corredor</th>
-                        <th>Prat.</th>
-                        <th>Pos.</th>
-                        <th>Compra</th>
-                        <th>Venda</th>
-                        <th>Data</th>
-                    </tr>
+                    <tr><th>Foto</th><th>Código</th><th>Produto</th><th>Qtd</th><th>Preço</th></tr>
                 </thead>
-                <tbody>
-                    <!-- Preenchido via JavaScript -->
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
     </div>
@@ -283,309 +77,92 @@
 
 <script>
     let db;
-    const dbName = "EnriquetaDB";
-    const storeName = "produtos";
+    let html5QrCode;
 
-    function abrirBanco() {
-        const request = indexedDB.open(dbName, 1);
-        request.onerror = (event) => console.error("Erro ao abrir IndexedDB", event);
-        request.onsuccess = (event) => {
-            db = event.target.result;
-            carregarProdutos();
-        };
-        request.onupgradeneeded = (event) => {
-            let db = event.target.result;
-            if (!db.objectStoreNames.contains(storeName)) {
-                db.createObjectStore(storeName, { keyPath: "codigo" });
-            }
-        };
-    }
+    const request = indexedDB.open("EnriquetaDB", 1);
+    request.onsuccess = (e) => { db = e.target.result; carregarTabela(); };
+    request.onupgradeneeded = (e) => { e.target.result.createObjectStore("produtos", { keyPath: "codigo" }); };
 
-    abrirBanco();
-
-    let html5QrCode = null;
-
-    function iniciarCameraBarcode() {
-        const readerDiv = document.getElementById("reader");
-        readerDiv.style.display = "block";
-        document.getElementById("btn-start-camera").style.display = "none";
-        document.getElementById("btn-stop-camera").style.display = "block";
-
+    function iniciarLeitor() {
+        document.getElementById("reader").style.display = "block";
+        document.getElementById("btn-stop").style.display = "block";
         html5QrCode = new Html5Qrcode("reader");
-        const configKeys = { fps: 10, qrbox: { width: 250, height: 150 } };
-
-        html5QrCode.start(
-            { facingMode: "environment" }, 
-            configKeys,
-            (decodedText) => {
-                document.getElementById("codigo").value = decodedText;
-                pararCameraBarcode();
-                alert("Código lido com sucesso: " + decodedText);
-            },
-            (errorMessage) => {}
-        ).catch((err) => {
-            html5QrCode.start(
-                { facingMode: "user" }, 
-                configKeys,
-                (decodedText) => {
-                    document.getElementById("codigo").value = decodedText;
-                    pararCameraBarcode();
-                    alert("Código lido com sucesso: " + decodedText);
-                },
-                (err2) => {}
-            ).catch(err3 => {
-                alert("Não foi possível aceder à câmara.");
-                pararCameraBarcode();
-            });
-        });
+        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
+            document.getElementById("codigo").value = text;
+            pararLeitor();
+            alert("Código Lido: " + text);
+        }).catch(() => alert("Erro ao abrir a câmara. Verifique as permissões."));
     }
 
-    function pararCameraBarcode() {
-        if (html5QrCode && html5QrCode.isScanning) {
-            html5QrCode.stop().then(() => {
-                html5QrCode.clear();
-            }).catch(err => {});
-        }
+    function pararLeitor() {
+        if(html5QrCode) html5QrCode.stop().then(() => html5QrCode.clear());
         document.getElementById("reader").style.display = "none";
-        document.getElementById("btn-start-camera").style.display = "block";
-        document.getElementById("btn-stop-camera").style.display = "none";
+        document.getElementById("btn-stop").style.display = "none";
     }
 
-    function enriquecerDadosAutomaticos(termoIA) {
-        const termo = termoIA.toLowerCase();
-        let categoria = "Geral";
-        let marca = "Genérica";
-        let precoCompra = 5.00;
-        let precoVenda = 12.00;
-
-        if (termo.includes("phone") || termo.includes("cellular") || termo.includes("smartphone")) {
-            categoria = "Eletrónicos";
-            marca = "TechDevice";
-            precoCompra = 150.00;
-            precoVenda = 299.00;
-        } else if (termo.includes("bottle") || termo.includes("cup") || termo.includes("mug") || termo.includes("glass")) {
-            categoria = "Utensílios";
-            marca = "CasaPrática";
-            precoCompra = 2.50;
-            precoVenda = 7.99;
-        } else if (termo.includes("book") || termo.includes("notebook") || termo.includes("paper")) {
-            categoria = "Papelaria";
-            marca = "EditoraLocal";
-            precoCompra = 3.00;
-            precoVenda = 9.50;
-        } else if (termo.includes("shirt") || termo.includes("clothing") || termo.includes("jeans") || termo.includes("shoe")) {
-            categoria = "Vestuário";
-            marca = "ModaModerna";
-            precoCompra = 8.00;
-            precoVenda = 24.99;
-        } else if (termo.includes("box") || termo.includes("container") || termo.includes("carton")) {
-            categoria = "Embalagem";
-            marca = "LogisPack";
-            precoCompra = 0.80;
-            precoVenda = 2.50;
-        }
-
-        return { categoria, marca, precoCompra, precoVenda };
-    }
-
-    async function identificarObjetoEPreencher() {
-        const statusDiv = document.getElementById("ai-status");
-        const videoElement = document.getElementById("webcam");
-        const canvas = document.getElementById("canvas-foto");
-        
-        statusDiv.innerText = "A iniciar câmara para IA e foto...";
-        videoElement.style.display = "block";
-
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-            videoElement.srcObject = stream;
-
-            statusDiv.innerText = "A carregar modelo de Inteligência Artificial...";
-            const model = await mobilenet.load();
-
-            statusDiv.innerText = "Aponte a câmara para o produto (captura em 3s)...";
-            
-            setTimeout(async () => {
-                statusDiv.innerText = "A analisar e capturar fotografia JPG...";
-                
-                // Captura do frame do vídeo para o canvas (Formato JPG)
-                canvas.width = videoElement.videoWidth || 640;
-                canvas.height = videoElement.videoHeight || 480;
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-                
-                // Converte para JPG em formato Base64 comprimido
-                const dataUrlJpg = canvas.toDataURL("image/jpeg", 0.7);
-                document.getElementById("foto-jpg").value = dataUrlJpg;
-                
-                // Mostra a pré-visualização da foto
-                const imgPreview = document.getElementById("img-preview");
-                imgPreview.src = dataUrlJpg;
-                imgPreview.style.display = "inline-block";
-
-                const predictions = await model.classify(videoElement);
-                
-                stream.getTracks().forEach(track => track.stop());
-                videoElement.style.display = "none";
-
-                if (predictions && predictions.length > 0) {
-                    const melhorPrevisao = predictions[0];
-                    const nomeObjeto = melhorPrevisao.className.split(',')[0];
-                    
-                    const codigoGerado = "AI-" + Math.floor(10000 + Math.random() * 90000);
-                    document.getElementById("codigo").value = codigoGerado;
-                    document.getElementById("descricao").value = nomeObjeto;
-                    
-                    const dadosSugeridos = enriquecerDadosAutomaticos(nomeObjeto);
-                    document.getElementById("categoria").value = dadosSugeridos.categoria;
-                    document.getElementById("marca").value = dadosSugeridos.marca;
-                    document.getElementById("compra").value = dadosSugeridos.precoCompra.toFixed(2);
-                    document.getElementById("venda").value = dadosSugeridos.precoVenda.toFixed(2);
-                    document.getElementById("quantidade").value = 1;
-
-                    statusDiv.innerText = `Sucesso! Foto JPG capturada e campos preenchidos: "${nomeObjeto}"`;
-                } else {
-                    statusDiv.innerText = "Foto capturada, mas objeto não reconhecido com clareza.";
-                }
-            }, 3000);
-
-        } catch (error) {
-            console.error(error);
-            videoElement.style.display = "none";
-            statusDiv.innerText = "Erro ao aceder à câmara.";
+    function carregarFoto(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                document.getElementById("foto-base64").value = evt.target.result;
+                const img = document.getElementById("preview");
+                img.src = evt.target.result;
+                img.style.display = "block";
+            };
+            reader.readAsDataURL(file);
         }
     }
 
-    function salvarProduto(event) {
-        event.preventDefault();
-
-        const dataAtual = new Date().toLocaleDateString('pt-PT');
-
-        const produto = {
+    function salvar(e) {
+        e.preventDefault();
+        const p = {
             codigo: document.getElementById("codigo").value,
             descricao: document.getElementById("descricao").value,
             categoria: document.getElementById("categoria").value,
             marca: document.getElementById("marca").value,
-            quantidade: document.getElementById("quantidade").value,
-            corredor: document.getElementById("corredor").value,
-            prateleira: document.getElementById("prateleira").value,
-            posicao: document.getElementById("posicao").value,
-            compra: document.getElementById("compra").value,
-            venda: document.getElementById("venda").value,
-            foto: document.getElementById("foto-jpg").value,
-            data: dataAtual
+            qtd: document.getElementById("qtd").value,
+            preco: document.getElementById("preco").value,
+            foto: document.getElementById("foto-base64").value
         };
 
-        const transaction = db.transaction([storeName], "readwrite");
-        const store = transaction.objectStore(storeName);
-        const request = store.put(produto);
-
-        request.onsuccess = () => {
-            alert("Produto e foto JPG salvos com sucesso!");
-            document.getElementById("product-form").reset();
-            document.getElementById("img-preview").style.display = "none";
-            document.getElementById("ai-status").innerText = "";
-            carregarProdutos();
-        };
-
-        request.onerror = (event) => {
-            alert("Erro ao salvar produto: " + event.target.error);
+        const tx = db.transaction(["produtos"], "readwrite");
+        tx.objectStore("produtos").put(p);
+        tx.oncomplete = () => {
+            alert("Produto gravado!");
+            e.target.reset();
+            document.getElementById("preview").style.display = "none";
+            carregarTabela();
         };
     }
 
-    function carregarProdutos(filtro = "") {
-        if (!db) return;
-        const transaction = db.transaction([storeName], "readonly");
-        const store = transaction.objectStore(storeName);
-        const request = store.getAll();
-
-        request.onsuccess = (event) => {
-            const produtos = event.target.result;
-            const tbody = document.querySelector("#tabela-produtos tbody");
+    function carregarTabela() {
+        if(!db) return;
+        const tx = db.transaction(["produtos"], "readonly");
+        tx.objectStore("produtos").getAll().onsuccess = (e) => {
+            const tbody = document.querySelector("#tabela tbody");
             tbody.innerHTML = "";
-
-            const produtosFiltrados = produtos.filter(p => 
-                p.codigo.toLowerCase().includes(filtro.toLowerCase()) ||
-                p.descricao.toLowerCase().includes(filtro.toLowerCase()) ||
-                p.marca.toLowerCase().includes(filtro.toLowerCase())
-            );
-
-            produtosFiltrados.forEach(p => {
-                const tr = document.createElement("tr");
-                let imgTag = p.foto ? `<img src="${p.foto}" width="40" height="40" style="object-fit:cover; border-radius:4px;">` : "Sem foto";
-                tr.innerHTML = `
-                    <td>${imgTag}</td>
-                    <td>${p.codigo}</td>
-                    <td>${p.descricao}</td>
-                    <td>${p.categoria}</td>
-                    <td>${p.marca}</td>
-                    <td>${p.quantidade}</td>
-                    <td>${p.corredor}</td>
-                    <td>${p.prateleira}</td>
-                    <td>${p.posicao}</td>
-                    <td>${p.compra}</td>
-                    <td>${p.venda}</td>
-                    <td>${p.data}</td>
-                `;
-                tbody.appendChild(tr);
+            e.target.result.forEach(p => {
+                const img = p.foto ? `<img src="${p.foto}" width="35" height="35" style="object-fit:cover;">` : "-";
+                tbody.innerHTML += `<tr><td>${img}</td><td>${p.codigo}</td><td>${p.descricao}</td><td>${p.qtd}</td><td>${p.preco}€</td></tr>`;
             });
         };
-    }
-
-    function pesquisarProdutos() {
-        const termo = document.getElementById("pesquisa").value;
-        carregarProdutos(termo);
     }
 
     function exportarCSV() {
-        const transaction = db.transaction([storeName], "readonly");
-        const store = transaction.objectStore(storeName);
-        const request = store.getAll();
-
-        request.onsuccess = (event) => {
-            const produtos = event.target.result;
-            if (produtos.length === 0) {
-                alert("Nenhum produto cadastrado para exportar.");
-                return;
-            }
-
-            let csvContent = "Código,Produto,Categoria,Marca,Quantidade,Corredor,Prateleira,Posição,Compra,Venda,Data,Foto_Base64
-";
-
-            produtos.forEach(p => {
-                let fotoLimpa = p.foto ? p.foto.replace(/(
-|
-|
-)/gm, "") : "";
-                let linha = [
-                    `"${p.codigo}"`,
-                    `"${p.descricao}"`,
-                    `"${p.categoria}"`,
-                    `"${p.marca}"`,
-                    p.quantidade,
-                    `"${p.corredor}"`,
-                    `"${p.prateleira}"`,
-                    `"${p.posicao}"`,
-                    p.compra,
-                    p.venda,
-                    `"${p.data}"`,
-                    `"${fotoLimpa}"`
-                ].join(",");
-                csvContent += linha + "
-";
+        const tx = db.transaction(["produtos"], "readonly");
+        tx.objectStore("produtos").getAll().onsuccess = (e) => {
+            let csv = "Codigo,Descricao,Categoria,Marca,Quantidade,Preco,Foto_Base64\n";
+            e.target.result.forEach(p => {
+                csv += `"${p.codigo}","${p.descricao}","${p.categoria}","${p.marca}",${p.qtd},${p.preco},"${p.foto || ''}"\n`;
             });
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
+            const blob = new Blob([csv], { type: 'text/csv' });
             const a = document.createElement("a");
-            a.setAttribute("href", url);
-            a.setAttribute("download", "estoque_enriqueta_com_fotos.csv");
-            document.body.appendChild(a);
+            a.href = URL.createObjectURL(blob);
+            a.download = "estoque_enriqueta.csv";
             a.click();
-            document.body.removeChild(a);
         };
     }
 </script>
-
 </body>
 </html>
