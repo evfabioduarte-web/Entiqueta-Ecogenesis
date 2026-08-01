@@ -4,28 +4,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enriqueta RFID - Captura JPG & Leitura</title>
+    <!-- Biblioteca leitora de Código de Barras / QR Code -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <style>
-        :root { --primary: #4f46e5; --bg: #f9fafb; --card: #ffffff; --text: #1f2937; --border: #e5e7eb; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 16px; margin: 0; }
+        :root { 
+            --primary: #4f46e5; 
+            --primary-hover: #4338ca;
+            --bg: #f9fafb; 
+            --card: #ffffff; 
+            --text: #1f2937; 
+            --border: #e5e7eb; 
+        }
+        body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            padding: 16px; 
+            margin: 0; 
+        }
         .container { max-width: 600px; margin: 0 auto; }
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+        .card { 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            border-radius: 8px; 
+            padding: 16px; 
+            margin-bottom: 16px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
         h2, h3 { color: var(--primary); margin-top: 0; }
-        button { background: var(--primary); color: white; border: none; border-radius: 6px; padding: 12px; font-size: 1rem; width: 100%; font-weight: bold; cursor: pointer; margin-top: 8px; }
+        button { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            padding: 12px; 
+            font-size: 1rem; 
+            width: 100%; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 8px; 
+        }
+        button:hover { background: var(--primary-hover); }
         button.sec { background: #6b7280; }
-        input { width: 100%; padding: 10px; margin: 6px 0 12px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; }
+        button.sec:hover { background: #4b5563; }
+        input { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 6px 0 12px; 
+            border: 1px solid var(--border); 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 0.95rem;
+        }
+        label { font-size: 0.85rem; font-weight: 600; color: #4b5563; }
         .row { display: flex; gap: 10px; }
         .col { flex: 1; }
-        #reader { width: 100%; margin-bottom: 12px; display: none; }
-        #preview { max-width: 100px; max-height: 100px; border-radius: 6px; display: none; margin-top: 8px; }
+        #reader { width: 100%; margin-bottom: 12px; display: none; border-radius: 6px; overflow: hidden; }
+        #preview { max-width: 100px; max-height: 100px; border-radius: 6px; display: none; margin-top: 8px; object-fit: cover; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
-        th, td { border: 1px solid var(--border); padding: 6px; text-align: left; }
+        th, td { border: 1px solid var(--border); padding: 8px; text-align: center; vertical-align: middle; }
         th { background: #f3f4f6; }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <!-- Bloco 1: Leitor de Código de Barras -->
     <div class="card">
         <h2>Enriqueta RFID</h2>
         <button onclick="iniciarLeitor()">📷 Ler Código de Barras</button>
@@ -33,41 +77,63 @@
         <button id="btn-stop" class="sec" onclick="pararLeitor()" style="display:none;">Parar Leitor</button>
     </div>
 
+    <!-- Bloco 2: Formulario de Cadastro -->
     <div class="card">
         <h3>📦 Cadastrar Produto</h3>
         <form onsubmit="salvar(event)">
-            <label>Código do Produto</label>
+            <label for="codigo">Código do Produto</label>
             <input type="text" id="codigo" required placeholder="Digite ou leia o código">
 
-            <label>Descrição / Produto</label>
+            <label for="descricao">Descrição / Produto</label>
             <input type="text" id="descricao" required placeholder="Ex: Caderno A5">
 
             <div class="row">
-                <div class="col"><label>Categoria</label><input type="text" id="categoria" value="Geral"></div>
-                <div class="col"><label>Marca</label><input type="text" id="marca" value="Genérica"></div>
+                <div class="col">
+                    <label for="categoria">Categoria</label>
+                    <input type="text" id="categoria" value="Geral">
+                </div>
+                <div class="col">
+                    <label for="marca">Marca</label>
+                    <input type="text" id="marca" value="Genérica">
+                </div>
             </div>
 
             <div class="row">
-                <div class="col"><label>Qtd</label><input type="number" id="qtd" value="1"></div>
-                <div class="col"><label>Preço (€)</label><input type="number" step="0.01" id="preco" value="0.00"></div>
+                <div class="col">
+                    <label for="qtd">Qtd</label>
+                    <input type="number" id="qtd" value="1" min="1">
+                </div>
+                <div class="col">
+                    <label for="preco">Preço (€)</label>
+                    <input type="number" step="0.01" id="preco" value="0.00">
+                </div>
             </div>
 
-            <label>📷 Foto do Produto (JPG)</label>
-            <input type="file" id="foto-input" accept="image/jpeg, image/png" capture="environment" onchange="carregarFoto(event)">
+            <label for="foto-input">📷 Foto do Produto (JPG)</label>
+            <input type="file" id="foto-input" accept="image/jpeg, image/png" capture="environment" onchange="carregarEComprimirFoto(event)">
             <img id="preview" alt="Pré-visualização">
             <input type="hidden" id="foto-base64">
 
-            <button type="submit">Salvar na Planilha</button>
+            <button type="submit">Salvar no Estoque Local</button>
         </form>
     </div>
 
+    <!-- Bloco 3: Tabela e Exportação para Excel -->
     <div class="card">
         <h3>📊 Estoque</h3>
-        <button class="sec" onclick="exportarCSV()">📥 Exportar para CSV (Excel)</button>
+        <button class="sec" onclick="exportarExcel()">📥 Exportar para Excel (.xls) com Fotos</button>
         <div style="overflow-x:auto;">
             <table id="tabela">
                 <thead>
-                    <tr><th>Foto</th><th>Código</th><th>Produto</th><th>Qtd</th><th>Preço</th></tr>
+                    <tr>
+                        <th>Foto</th>
+                        <th>Código</th>
+                        <th>Produto</th>
+                        <th>Categoria</th>
+                        <th>Marca</th>
+                        <th>Qtd</th>
+                        <th>Preço</th>
+                    </tr>
                 </thead>
                 <tbody></tbody>
             </table>
@@ -77,90 +143,221 @@
 
 <script>
     let db;
-    let html5QrCode;
+    let html5QrCode = null;
 
+    // Inicialização do Banco de Dados IndexedDB
     const request = indexedDB.open("EnriquetaDB", 1);
-    request.onsuccess = (e) => { db = e.target.result; carregarTabela(); };
-    request.onupgradeneeded = (e) => { e.target.result.createObjectStore("produtos", { keyPath: "codigo" }); };
+    request.onsuccess = (e) => { 
+        db = e.target.result; 
+        carregarTabela(); 
+    };
+    request.onupgradeneeded = (e) => { 
+        e.target.result.createObjectStore("produtos", { keyPath: "codigo" }); 
+    };
 
+    // Função de Leitura de Código de Barras
     function iniciarLeitor() {
         document.getElementById("reader").style.display = "block";
         document.getElementById("btn-stop").style.display = "block";
-        html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-            document.getElementById("codigo").value = text;
+        
+        if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode("reader");
+        }
+
+        html5QrCode.start(
+            { facingMode: "environment" }, 
+            { fps: 10, qrbox: { width: 250, height: 150 } }, 
+            (decodedText) => {
+                document.getElementById("codigo").value = decodedText;
+                pararLeitor();
+                alert("Código Lido com Sucesso: " + decodedText);
+            }
+        ).catch((err) => {
+            console.error("Erro na câmara:", err);
+            alert("Não foi possível aceder à câmara. Verifique as permissões do dispositivo.");
             pararLeitor();
-            alert("Código Lido: " + text);
-        }).catch(() => alert("Erro ao abrir a câmara. Verifique as permissões."));
+        });
     }
 
     function pararLeitor() {
-        if(html5QrCode) html5QrCode.stop().then(() => html5QrCode.clear());
-        document.getElementById("reader").style.display = "none";
-        document.getElementById("btn-stop").style.display = "none";
-    }
-
-    function carregarFoto(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                document.getElementById("foto-base64").value = evt.target.result;
-                const img = document.getElementById("preview");
-                img.src = evt.target.result;
-                img.style.display = "block";
-            };
-            reader.readAsDataURL(file);
+        if (html5QrCode && html5QrCode.isScanning) {
+            html5QrCode.stop().then(() => {
+                html5QrCode.clear();
+                document.getElementById("reader").style.display = "none";
+                document.getElementById("btn-stop").style.display = "none";
+            }).catch(err => console.error(err));
+        } else {
+            document.getElementById("reader").style.display = "none";
+            document.getElementById("btn-stop").style.display = "none";
         }
     }
 
+    // Processamento e Compressão da Foto JPG
+    function carregarEComprimirFoto(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const img = new Image();
+            img.onload = function() {
+                // Redimensionar mantendo proporção (Máximo 600px)
+                const canvas = document.createElement("canvas");
+                let width = img.width;
+                let height = img.height;
+                const maxDim = 600;
+
+                if (width > height && width > maxDim) {
+                    height = Math.round((height *= maxDim / width));
+                    width = maxDim;
+                } else if (height > maxDim) {
+                    width = Math.round((width *= maxDim / height));
+                    height = maxDim;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Converter para JPG com compressão (70%)
+                const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+
+                document.getElementById("foto-base64").value = compressedBase64;
+                const previewImg = document.getElementById("preview");
+                previewImg.src = compressedBase64;
+                previewImg.style.display = "block";
+            };
+            img.src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Salvar Registo no Banco de Dados
     function salvar(e) {
         e.preventDefault();
         const p = {
-            codigo: document.getElementById("codigo").value,
-            descricao: document.getElementById("descricao").value,
-            categoria: document.getElementById("categoria").value,
-            marca: document.getElementById("marca").value,
+            codigo: document.getElementById("codigo").value.trim(),
+            descricao: document.getElementById("descricao").value.trim(),
+            categoria: document.getElementById("categoria").value.trim(),
+            marca: document.getElementById("marca").value.trim(),
             qtd: document.getElementById("qtd").value,
-            preco: document.getElementById("preco").value,
+            preco: parseFloat(document.getElementById("preco").value).toFixed(2),
             foto: document.getElementById("foto-base64").value
         };
 
         const tx = db.transaction(["produtos"], "readwrite");
         tx.objectStore("produtos").put(p);
         tx.oncomplete = () => {
-            alert("Produto gravado!");
+            alert("Produto cadastrado com sucesso!");
             e.target.reset();
             document.getElementById("preview").style.display = "none";
+            document.getElementById("foto-base64").value = "";
             carregarTabela();
         };
     }
 
+    // Carregar Tabela no HTML
     function carregarTabela() {
-        if(!db) return;
+        if (!db) return;
         const tx = db.transaction(["produtos"], "readonly");
         tx.objectStore("produtos").getAll().onsuccess = (e) => {
             const tbody = document.querySelector("#tabela tbody");
             tbody.innerHTML = "";
             e.target.result.forEach(p => {
-                const img = p.foto ? `<img src="${p.foto}" width="35" height="35" style="object-fit:cover;">` : "-";
-                tbody.innerHTML += `<tr><td>${img}</td><td>${p.codigo}</td><td>${p.descricao}</td><td>${p.qtd}</td><td>${p.preco}€</td></tr>`;
+                const img = p.foto ? `<img src="${p.foto}" width="45" height="45" style="object-fit:cover; border-radius:4px;">` : "-";
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${img}</td>
+                        <td>${p.codigo}</td>
+                        <td>${p.descricao}</td>
+                        <td>${p.categoria}</td>
+                        <td>${p.marca}</td>
+                        <td>${p.qtd}</td>
+                        <td>${p.preco} €</td>
+                    </tr>`;
             });
         };
     }
 
-    function exportarCSV() {
+    // Exportação com estrutura de Planilha Excel (.xls) incluindo Fotos embutidas
+    function exportarExcel() {
         const tx = db.transaction(["produtos"], "readonly");
         tx.objectStore("produtos").getAll().onsuccess = (e) => {
-            let csv = "Codigo,Descricao,Categoria,Marca,Quantidade,Preco,Foto_Base64\n";
-            e.target.result.forEach(p => {
-                csv += `"${p.codigo}","${p.descricao}","${p.categoria}","${p.marca}",${p.qtd},${p.preco},"${p.foto || ''}"\n`;
+            const produtos = e.target.result;
+            if (produtos.length === 0) {
+                alert("Nenhum produto registado para exportar.");
+                return;
+            }
+
+            let htmlTabela = `
+            <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+            <head>
+                <!--[if gte mso 9]>
+                <xml>
+                    <x:ExcelWorkbook>
+                        <x:ExcelWorksheets>
+                            <x:ExcelWorksheet>
+                                <x:Name>Estoque Enriqueta</x:Name>
+                                <x:WorksheetOptions>
+                                    <x:DisplayGridlines/>
+                                </x:WorksheetOptions>
+                            </x:ExcelWorksheet>
+                        </x:ExcelWorksheets>
+                    </x:ExcelWorkbook>
+                </xml>
+                <![endif]-->
+                <meta charset="utf-8">
+                <style>
+                    table { border-collapse: collapse; width: 100%; }
+                    th, td { border: 1px solid #cccccc; text-align: center; vertical-align: middle; padding: 6px; }
+                    th { background-color: #4f46e5; color: #ffffff; font-weight: bold; }
+                    img { width: 55px; height: 55px; object-fit: cover; }
+                </style>
+            </head>
+            <body>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Foto</th>
+                            <th>Código</th>
+                            <th>Produto</th>
+                            <th>Categoria</th>
+                            <th>Marca</th>
+                            <th>Quantidade</th>
+                            <th>Preço (€)</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+            produtos.forEach(p => {
+                const imgTag = p.foto ? `<img src="${p.foto}" width="55" height="55">` : 'Sem Foto';
+                htmlTabela += `
+                    <tr>
+                        <td style="height: 60px; width: 65px;">${imgTag}</td>
+                        <td>${p.codigo}</td>
+                        <td>${p.descricao}</td>
+                        <td>${p.categoria}</td>
+                        <td>${p.marca}</td>
+                        <td>${p.qtd}</td>
+                        <td>${p.preco}</td>
+                    </tr>`;
             });
-            const blob = new Blob([csv], { type: 'text/csv' });
+
+            htmlTabela += `
+                    </tbody>
+                </table>
+            </body>
+            </html>`;
+
+            const blob = new Blob([htmlTabela], { type: 'application/vnd.ms-excel;charset=utf-8' });
             const a = document.createElement("a");
             a.href = URL.createObjectURL(blob);
-            a.download = "estoque_enriqueta.csv";
+            a.download = "estoque_enriqueta_excel.xls";
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
         };
     }
 </script>
