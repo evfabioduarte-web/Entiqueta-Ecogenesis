@@ -1,19 +1,438 @@
-# Validando a lógica do HTML/JS completo para garantir que a geração de OS e sincronização de clientes funcionem sem erros.
-
-html_updated = """
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ERP Core - Com Clientes & OS Automática</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS para Exportação Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body class="bg-gray-900 text-gray-100 pb-20 font-sans">
-    <!-- Test HTML Code Syntax check -->
+
+    <!-- Header / Mentoria Estratégica -->
+    <header class="bg-indigo-700 text-white p-4 sticky top-0 z-50 shadow-lg">
+        <h1 class="text-xl font-bold">ERP Core & System OS</h1>
+        <p class="text-xs text-indigo-200" id="mentorTip">💡 Carregando orientação estratégica...</p>
+    </header>
+
+    <!-- Navegação em Abas Mobile -->
+    <nav class="flex justify-around bg-gray-800 border-b border-gray-700 sticky top-14 z-40 text-xs font-semibold text-gray-300 overflow-x-auto">
+        <button onclick="switchTab('tab-cliente', this)" class="p-3 tab-btn border-b-2 border-indigo-500 text-indigo-400 whitespace-nowrap">1. Clientes</button>
+        <button onclick="switchTab('tab-servicos', this)" class="p-3 tab-btn border-b-2 border-transparent whitespace-nowrap">2. Mão de Obra</button>
+        <button onclick="switchTab('tab-estoque', this)" class="p-3 tab-btn border-b-2 border-transparent whitespace-nowrap">3. Estoque</button>
+        <button onclick="switchTab('tab-orcamento', this)" class="p-3 tab-btn border-b-2 border-transparent whitespace-nowrap">4. Orçamento & OS</button>
+        <button onclick="switchTab('tab-gestao', this)" class="p-3 tab-btn border-b-2 border-transparent whitespace-nowrap">5. Pós-Obra</button>
+    </nav>
+
+    <main class="p-4 max-w-lg mx-auto space-y-4">
+
+        <!-- ABA 1: CADASTRO E LISTA DE CLIENTES -->
+        <section id="tab-cliente" class="tab-content block space-y-4">
+            <h2 class="text-lg font-bold text-indigo-300">Gestão de Clientes</h2>
+            <form id="formCliente" class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow space-y-3" onsubmit="salvarCliente(event)">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Nome / Razão Social</label>
+                    <input type="text" id="cliNome" placeholder="Ex: João Silva ou Solar Tech" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" required>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Telefone / WhatsApp</label>
+                    <input type="tel" id="cliTelefone" placeholder="(00) 00000-0000" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" required>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Endereço Completo</label>
+                    <input type="text" id="cliEndereco" placeholder="Rua, Número, Bairro, Cidade" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" required>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded font-bold text-sm transition">+ Cadastrar Cliente</button>
+            </form>
+
+            <div class="bg-gray-800 p-3 rounded-lg border border-gray-700">
+                <h3 class="text-xs font-bold text-gray-400 mb-2">Clientes Cadastrados:</h3>
+                <ul id="listaClientesCadastrados" class="text-xs space-y-2">
+                    <li class="text-gray-500 italic">Nenhum cliente cadastrado ainda.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ABA 2: MÃO DE OBRA -->
+        <section id="tab-servicos" class="tab-content hidden space-y-4">
+            <!-- Selector de Cliente -->
+            <div class="bg-indigo-950/70 border border-indigo-800 p-2.5 rounded-lg">
+                <label class="block text-xs text-indigo-300 font-semibold mb-1">Selecione o Cliente:</label>
+                <select onchange="selecionarClienteGlobal(this.value)" class="cliente-selector w-full p-2 bg-gray-900 border border-indigo-700 rounded text-xs text-white">
+                    <option value="">-- Escolha um cliente --</option>
+                </select>
+            </div>
+
+            <h2 class="text-lg font-bold text-indigo-300">Mão de Obra Especializada</h2>
+            <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow space-y-3">
+                <label class="block text-xs text-gray-400">Selecione o Perfil Técnico:</label>
+                <select id="servicoSelect" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500">
+                    <option value="120">Técnico Fotovoltaico/Elétrico (R$ 120,00/h)</option>
+                    <option value="80">Assistente Técnico Generalista (R$ 80,00/h)</option>
+                    <option value="150">Engenheiro / Consultor Sênior (R$ 150,00/h)</option>
+                </select>
+                <input type="number" id="horasTrabalho" placeholder="Horas estimadas" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" min="1">
+                <button type="button" onclick="adicionarServico()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded font-bold text-sm transition">Adicionar Mão de Obra</button>
+            </div>
+            <div class="bg-gray-800 p-3 rounded-lg border border-gray-700">
+                <h3 class="text-xs font-bold text-gray-400 mb-2">Itens Adicionados ao Cliente Ativo:</h3>
+                <ul id="listaServicosAdicionados" class="text-xs space-y-2"></ul>
+            </div>
+        </section>
+
+        <!-- ABA 3: ESTOQUE E MATERIAIS -->
+        <section id="tab-estoque" class="tab-content hidden space-y-4">
+            <!-- Selector de Cliente -->
+            <div class="bg-indigo-950/70 border border-indigo-800 p-2.5 rounded-lg">
+                <label class="block text-xs text-indigo-300 font-semibold mb-1">Selecione o Cliente:</label>
+                <select onchange="selecionarClienteGlobal(this.value)" class="cliente-selector w-full p-2 bg-gray-900 border border-indigo-700 rounded text-xs text-white">
+                    <option value="">-- Escolha um cliente --</option>
+                </select>
+            </div>
+
+            <h2 class="text-lg font-bold text-indigo-300">Estoque de Materiais & Equipamentos</h2>
+            <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow space-y-3">
+                <label class="block text-xs text-gray-400">Selecione o Insumo / Equipamento:</label>
+                <select id="estoqueSelect" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500">
+                    <option value="350">Painel Solar Fotovoltaico (Custo: R$ 350,00)</option>
+                    <option value="2500">Inversor String 3kW (Custo: R$ 2.500,00)</option>
+                    <option value="45">Estrutura de Fixação / Metro (Custo: R$ 45,00)</option>
+                    <option value="12">Cabo Solar 6mm / Metro (Custo: R$ 12,00)</option>
+                    <option value="1200">Módulo de Bateria / BESS (Custo: R$ 1.200,00)</option>
+                </select>
+                <input type="number" id="qtdMaterial" placeholder="Quantidade" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" min="1">
+                <button type="button" onclick="adicionarMaterial()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded font-bold text-sm transition">Adicionar Insumo</button>
+            </div>
+            <div class="bg-gray-800 p-3 rounded-lg border border-gray-700">
+                <h3 class="text-xs font-bold text-gray-400 mb-2">Insumos no Orçamento:</h3>
+                <ul id="listaMateriaisAdicionados" class="text-xs space-y-2"></ul>
+            </div>
+        </section>
+
+        <!-- ABA 4: GERADOR DE ORÇAMENTO & OS AUTOMÁTICA -->
+        <section id="tab-orcamento" class="tab-content hidden space-y-4">
+            <!-- Selector de Cliente -->
+            <div class="bg-indigo-950/70 border border-indigo-800 p-2.5 rounded-lg">
+                <label class="block text-xs text-indigo-300 font-semibold mb-1">Selecione o Cliente:</label>
+                <select onchange="selecionarClienteGlobal(this.value)" class="cliente-selector w-full p-2 bg-gray-900 border border-indigo-700 rounded text-xs text-white">
+                    <option value="">-- Escolha um cliente --</option>
+                </select>
+            </div>
+
+            <h2 class="text-lg font-bold text-indigo-300">Orçamento & Ordem de Serviço (OS)</h2>
+            <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow space-y-4">
+                <button type="button" onclick="calcularOrcamentoEGerarOS()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white p-3 rounded-lg font-bold text-sm transition flex justify-center items-center gap-2">
+                    ⚡ Processar Custo & Gerar OS Automática
+                </button>
+                
+                <div id="relatorioOrcamento" class="hidden border-t border-gray-700 pt-3 space-y-3 text-sm">
+                    <!-- Bloco da OS Gerada -->
+                    <div class="bg-gray-900 p-3 rounded border border-emerald-500/40 space-y-1 text-xs">
+                        <div class="flex justify-between items-center text-emerald-400 font-bold">
+                            <span>ORDEM DE SERVIÇO GERADA</span>
+                            <span id="osNumero">OS-0000</span>
+                        </div>
+                        <p class="text-gray-400">Data Emissão: <span id="osData" class="text-gray-200"></span></p>
+                        <p class="text-gray-400">Cliente OS: <span id="osClienteNome" class="text-gray-200 font-bold"></span></p>
+                    </div>
+
+                    <div class="flex justify-between text-gray-300">
+                        <span>Custo Direto Total:</span>
+                        <strong id="valCusto" class="text-white">R$ 0,00</strong>
+                    </div>
+                    <div class="flex justify-between text-emerald-400">
+                        <span>Preço Final (+50% Lucro):</span>
+                        <strong id="valVenta" class="text-lg">R$ 0,00</strong>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Status da OS / Proposta:</label>
+                        <select id="statusOrcamento" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-xs text-white focus:outline-none">
+                            <option value="Em Análise / OS Aberta">Em Análise / OS Aberta</option>
+                            <option value="Aprovado / Em Execução">Aprovado / OS Em Execução</option>
+                            <option value="Concluído / Finalizado">Concluído / OS Finalizada</option>
+                            <option value="Recusado">Não Aprovado / Cancelado</option>
+                        </select>
+                    </div>
+
+                    <button type="button" onclick="exportarExcel()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded font-bold text-xs transition flex justify-center items-center gap-2">
+                        📥 Baixar Orçamento + OS em Excel (.XLSX)
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA 5: GESTÃO & PÓS-OBRA -->
+        <section id="tab-gestao" class="tab-content hidden space-y-4">
+            <!-- Selector de Cliente -->
+            <div class="bg-indigo-950/70 border border-indigo-800 p-2.5 rounded-lg">
+                <label class="block text-xs text-indigo-300 font-semibold mb-1">Selecione o Cliente:</label>
+                <select onchange="selecionarClienteGlobal(this.value)" class="cliente-selector w-full p-2 bg-gray-900 border border-indigo-700 rounded text-xs text-white">
+                    <option value="">-- Escolha um cliente --</option>
+                </select>
+            </div>
+
+            <h2 class="text-lg font-bold text-indigo-300">Pós-Obra & Execução da OS</h2>
+            <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow space-y-3">
+                <label class="block text-xs text-gray-400">Data Agendada para Execução / Visita:</label>
+                <input type="date" id="dataVisita" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-xs text-white">
+                
+                <label class="block text-xs font-semibold text-gray-300 mt-2">Checklist de Execução da OS:</label>
+                <div class="space-y-2 text-xs text-gray-300">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="chk1" class="rounded border-gray-700 bg-gray-900 text-indigo-600"> Testes elétricos e comissionamento concluídos
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="chk2" class="rounded border-gray-700 bg-gray-900 text-indigo-600"> Assinatura do Termo de Encerramento de OS
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="chk3" class="rounded border-gray-700 bg-gray-900 text-indigo-600"> Envio de pesquisa de satisfação (NPS)
+                    </label>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- LÓGICA DO SISTEMA EM JAVASCRIPT -->
+    <script>
+        // Estrutura de dados para múltiplos clientes
+        let clientes = [];
+        let clienteAtivoId = null;
+
+        const dicasMentor = [
+            "Estratégia: Cada Ordem de Serviço gerada deve conter prazo claro de execução.",
+            "Compliance: Guarde o histórico de OS de cada cliente para manutenções preventivas.",
+            "Marketing: Solas de pós-obra concluídas são excelentes provas sociais para novos orçamentos.",
+            "Gestão: Vincule insumos e horas técnicas diretamente ao cliente ativo antes de recalcular."
+        ];
+
+        document.getElementById('mentorTip').innerText = "💡 " + dicasMentor[Math.floor(Math.random() * dicasMentor.length)];
+
+        // Alternar abas
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('border-indigo-500', 'text-indigo-400');
+                el.classList.add('border-transparent');
+            });
+            
+            document.getElementById(tabId).classList.remove('hidden');
+            btnElement.classList.remove('border-transparent');
+            btnElement.classList.add('border-indigo-500', 'text-indigo-400');
+        }
+
+        // 1. Cadastrar Cliente
+        function salvarCliente(e) {
+            e.preventDefault();
+            const id = Date.now().toString();
+            const novoCliente = {
+                id,
+                nome: document.getElementById('cliNome').value,
+                telefone: document.getElementById('cliTelefone').value,
+                endereco: document.getElementById('cliEndereco').value,
+                servicos: [],
+                materiais: [],
+                custoTotal: 0,
+                precoFinal: 0,
+                ordemServico: null
+            };
+
+            clientes.push(novoCliente);
+            document.getElementById('formCliente').reset();
+            
+            // Define o novo cliente como ativo caso nenhum estivesse selecionado
+            if (!clienteAtivoId) {
+                clienteAtivoId = id;
+            }
+
+            atualizarUI();
+            alert("Cliente cadastrado com sucesso!");
+        }
+
+        // Atualizar Selects e Listas em todas as Abas
+        function atualizarUI() {
+            // Atualizar Selectors de Cliente nas Abas
+            const selectors = document.querySelectorAll('.cliente-selector');
+            selectors.forEach(select => {
+                select.innerHTML = '<option value="">-- Escolha um cliente --</option>';
+                clientes.forEach(c => {
+                    const isSelected = c.id === clienteAtivoId ? 'selected' : '';
+                    select.innerHTML += `<option value="${c.id}" ${isSelected}>${c.nome}</option>`;
+                });
+            });
+
+            // Atualizar Lista Visual da Aba 1
+            const listaUl = document.getElementById('listaClientesCadastrados');
+            if (clientes.length === 0) {
+                listaUl.innerHTML = '<li class="text-gray-500 italic">Nenhum cliente cadastrado ainda.</li>';
+            } else {
+                listaUl.innerHTML = clientes.map(c => `
+                    <li class="p-2 bg-gray-900 rounded border border-gray-700 flex justify-between items-center">
+                        <div>
+                            <strong class="text-indigo-300 block">${c.nome}</strong>
+                            <span class="text-gray-400 text-[10px]">${c.telefone} | ${c.endereco}</span>
+                        </div>
+                        ${c.id === clienteAtivoId ? '<span class="text-[10px] bg-indigo-900 text-indigo-300 px-2 py-0.5 rounded border border-indigo-700">Ativo</span>' : ''}
+                    </li>
+                `).join('');
+            }
+
+            // Atualizar listas do cliente selecionado
+            const cliente = getClienteAtivo();
+            if (cliente) {
+                renderizarServicos(cliente);
+                renderizarMateriais(cliente);
+                renderizarRelatorioOS(cliente);
+            }
+        }
+
+        function selecionarClienteGlobal(id) {
+            clienteAtivoId = id;
+            atualizarUI();
+        }
+
+        function getClienteAtivo() {
+            return clientes.find(c => c.id === clienteAtivoId);
+        }
+
+        // 2. Adicionar Mão de Obra
+        function adicionarServico() {
+            const cliente = getClienteAtivo();
+            if (!cliente) return alert("Por favor, selecione um cliente primeiro!");
+
+            const select = document.getElementById('servicoSelect');
+            const horas = parseFloat(document.getElementById('horasTrabalho').value) || 0;
+            const valorHora = parseFloat(select.value);
+            const desc = select.options[select.selectedIndex].text.split('(')[0].trim();
+
+            if (horas > 0) {
+                const total = horas * valorHora;
+                cliente.servicos.push({ desc, horas, valorHora, total });
+                document.getElementById('horasTrabalho').value = '';
+                renderizarServicos(cliente);
+            }
+        }
+
+        function renderizarServicos(cliente) {
+            const ul = document.getElementById('listaServicosAdicionados');
+            ul.innerHTML = cliente.servicos.map(s => `
+                <li class="flex justify-between border-b border-gray-700 pb-1 text-gray-300">
+                    <span>${s.desc} (${s.horas}h)</span>
+                    <strong class="text-indigo-400">R$ ${s.total.toFixed(2)}</strong>
+                </li>
+            `).join('');
+        }
+
+        // 3. Adicionar Insumos/Materiais
+        function adicionarMaterial() {
+            const cliente = getClienteAtivo();
+            if (!cliente) return alert("Por favor, selecione um cliente primeiro!");
+
+            const select = document.getElementById('estoqueSelect');
+            const qtd = parseFloat(document.getElementById('qtdMaterial').value) || 0;
+            const custoUnit = parseFloat(select.value);
+            const desc = select.options[select.selectedIndex].text.split('(')[0].trim();
+
+            if (qtd > 0) {
+                const total = qtd * custoUnit;
+                cliente.materiais.push({ desc, qtd, custoUnit, total });
+                document.getElementById('qtdMaterial').value = '';
+                renderizarMateriais(cliente);
+            }
+        }
+
+        function renderizarMateriais(cliente) {
+            const ul = document.getElementById('listaMateriaisAdicionados');
+            ul.innerHTML = cliente.materiais.map(m => `
+                <li class="flex justify-between border-b border-gray-700 pb-1 text-gray-300">
+                    <span>${m.desc} (x${m.qtd})</span>
+                    <strong class="text-indigo-400">R$ ${m.total.toFixed(2)}</strong>
+                </li>
+            `).join('');
+        }
+
+        // 4. Processar Custo e Gerar OS Automática
+        function calcularOrcamentoEGerarOS() {
+            const cliente = getClienteAtivo();
+            if (!cliente) return alert("Por favor, selecione um cliente primeiro!");
+
+            const custoServicos = cliente.servicos.reduce((acc, i) => acc + i.total, 0);
+            const custoMateriais = cliente.materiais.reduce((acc, i) => acc + i.total, 0);
+
+            cliente.custoTotal = custoServicos + custoMateriais;
+            cliente.precoFinal = cliente.custoTotal * 1.5; // Margem de 50%
+
+            // Gerar número de OS único caso ainda não tenha
+            if (!cliente.ordemServico) {
+                const ano = new Date().getFullYear();
+                const randomNum = Math.floor(1000 + Math.random() * 9000);
+                cliente.ordemServico = {
+                    numero: `OS-${ano}-${randomNum}`,
+                    dataEmissao: new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})
+                };
+            }
+
+            renderizarRelatorioOS(cliente);
+        }
+
+        function renderizarRelatorioOS(cliente) {
+            const container = document.getElementById('relatorioOrcamento');
+            if (cliente.ordemServico) {
+                document.getElementById('osNumero').innerText = cliente.ordemServico.numero;
+                document.getElementById('osData').innerText = cliente.ordemServico.dataEmissao;
+                document.getElementById('osClienteNome').innerText = cliente.nome;
+                document.getElementById('valCusto').innerText = `R$ ${cliente.custoTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+                document.getElementById('valVenta').innerText = `R$ ${cliente.precoFinal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        // 5. Exportar Orçamento + OS para Excel
+        function exportarExcel() {
+            const cliente = getClienteAtivo();
+            if (!cliente || !cliente.ordemServico) return alert("Processe o orçamento e gere a OS antes de exportar!");
+
+            const status = document.getElementById('statusOrcamento').value;
+            const dataVisita = document.getElementById('dataVisita').value || "Não agendada";
+
+            const dados = [
+                ["ORDEM DE SERVIÇO & PROPOSTA COMERCIAL"],
+                ["CÓDIGO DA OS:", cliente.ordemServico.numero],
+                ["DATA EMISSÃO:", cliente.ordemServico.dataEmissao],
+                [""],
+                ["DADOS DO CLIENTE"],
+                ["Nome", cliente.nome],
+                ["Telefone", cliente.telefone],
+                ["Endereço", cliente.endereco],
+                ["Status do Serviço/OS", status],
+                ["Data Prevista de Execução", dataVisita],
+                [""],
+                ["DETALHAMENTO DE MÃO DE OBRA"],
+                ["Descrição", "Horas", "Valor/Hora (R$)", "Total (R$)"],
+                ...cliente.servicos.map(s => [s.desc, s.horas, s.valorHora, s.total]),
+                [""],
+                ["DETALHAMENTO DE MATERIAIS / ESTOQUE"],
+                ["Descrição", "Quantidade", "Custo Unit. (R$)", "Total (R$)"],
+                ...cliente.materiais.map(m => [m.desc, m.qtd, m.custoUnit, m.total]),
+                [""],
+                ["RESUMO FINANCEIRO DA OS"],
+                ["Custo Direto da Operação", cliente.custoTotal],
+                ["Margem Aplicada", "50%"],
+                ["VALOR TOTAL DA OS / PROPOSTA", cliente.precoFinal]
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(dados);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Ordem_de_Servico");
+            
+            const nomeArquivo = `${cliente.ordemServico.numero}_${cliente.nome.replace(/\s+/g, '_')}.xlsx`;
+            XLSX.writeFile(wb, nomeArquivo);
+        }
+    </script>
 </body>
 </html>
-"""
-
-print("Sintaxe validada com sucesso!")
