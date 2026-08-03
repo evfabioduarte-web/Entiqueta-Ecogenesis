@@ -18,9 +18,7 @@
             <p class="text-xs text-indigo-200" id="mentorTip">💡 Carregando orientação estratégica...</p>
         </div>
         <div class="flex items-center gap-2">
-            <button onclick="exibirSenhaHoje()" class="text-[10px] bg-indigo-900/80 hover:bg-indigo-800 border border-indigo-400 text-indigo-200 px-2 py-1 rounded transition">
-                🔑 Senha Admin Hoje
-            </button>
+            <!-- BOTÃO DE EXIBIR SENHA FOI REMOVIDO DAQUI -->
             <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500 px-2 py-1 rounded-full flex items-center gap-1">
                 <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span> Memória Ativa
             </span>
@@ -236,21 +234,21 @@
 
     </main>
 
-    <!-- LÓGICA DO SISTEMA COM VALIDAÇÃO DE SENHA DO ADMINISTRADOR -->
+    <!-- LÓGICA DO SISTEMA -->
     <script>
-        // 🔑 REGRAS DE AUTENTICAÇÃO E SENHA DO ADMIN
-        const MASTER_KEY = "ADM99"; // Chave fixa do sistema
+        // 🔑 REGRAS SILENCIOSAS DE AUTENTICAÇÃO DO ADMIN
+        const MASTER_KEY = "ADM99";
 
-        // Gera a senha do dia dinamicamente (Ex: ADM99-24)
+        // Gera a senha internamente sem expor no HTML
         function gerarSenhaAdmin() {
             const hoje = new Date();
             const dia = String(hoje.getDate()).padStart(2, '0');
             return `${MASTER_KEY}-${dia}`;
         }
 
-        // Função para validar a senha antes de excluir qualquer item
+        // Valida a senha ao tentar excluir dados
         function autenticarAdmin() {
-            const senhaDigitada = prompt("🔒 AÇÃO RESTRITA: Digite a senha do Administrador para confirmar a exclusão:");
+            const senhaDigitada = prompt("🔒 AÇÃO RESTRITA: Digite a senha de administrador para confirmar:");
             if (!senhaDigitada) return false;
             
             if (senhaDigitada === gerarSenhaAdmin()) {
@@ -259,10 +257,6 @@
                 alert("❌ Senha incorreta! Operação cancelada.");
                 return false;
             }
-        }
-
-        function exibirSenhaHoje() {
-            alert(`🔑 [PAINEL ADMIN]\nA senha de exclusão para o dia de hoje é: ${gerarSenhaAdmin()}`);
         }
 
         // ESTRUTURA DE MEMÓRIA
@@ -285,7 +279,7 @@
         const dicasMentor = [
             "Estratégia: Mantenha sua tabela de perfis técnicos e insumos sempre atualizada.",
             "Compliance: Guarde o histórico de OS de cada cliente para manutenções preventivas.",
-            "Marketing: Solas de pós-obra concluídas são excelentes provas sociais para novos orçamentos.",
+            "Marketing: Obras de pós-obra concluídas são excelentes provas sociais para novos orçamentos.",
             "Gestão: Cadastre novos materiais e custos hora conforme seu fornecedor reajustar."
         ];
 
