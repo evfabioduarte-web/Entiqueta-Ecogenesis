@@ -1,373 +1,292 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enriqueta RFID - Captura JPG & Leitura</title>
-    <!-- Biblioteca leitora de Código de Barras / QR Code -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-    <style>
-        :root { 
-            --primary: #4f46e5; 
-            --primary-hover: #4338ca;
-            --bg: #f9fafb; 
-            --card: #ffffff; 
-            --text: #1f2937; 
-            --border: #e5e7eb; 
-        }
-        body { 
-            font-family: system-ui, -apple-system, sans-serif; 
-            background: var(--bg); 
-            color: var(--text); 
-            padding: 16px; 
-            margin: 0; 
-        }
-        .container { max-width: 600px; margin: 0 auto; }
-        .card { 
-            background: var(--card); 
-            border: 1px solid var(--border); 
-            border-radius: 8px; 
-            padding: 16px; 
-            margin-bottom: 16px; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        h2, h3 { color: var(--primary); margin-top: 0; }
-        button { 
-            background: var(--primary); 
-            color: white; 
-            border: none; 
-            border-radius: 6px; 
-            padding: 12px; 
-            font-size: 1rem; 
-            width: 100%; 
-            font-weight: bold; 
-            cursor: pointer; 
-            margin-top: 8px; 
-        }
-        button:hover { background: var(--primary-hover); }
-        button.sec { background: #6b7280; }
-        button.sec:hover { background: #4b5563; }
-        input { 
-            width: 100%; 
-            padding: 10px; 
-            margin: 6px 0 12px; 
-            border: 1px solid var(--border); 
-            border-radius: 6px; 
-            box-sizing: border-box; 
-            font-size: 0.95rem;
-        }
-        label { font-size: 0.85rem; font-weight: 600; color: #4b5563; }
-        .row { display: flex; gap: 10px; }
-        .col { flex: 1; }
-        #reader { width: 100%; margin-bottom: 12px; display: none; border-radius: 6px; overflow: hidden; }
-        #preview { max-width: 100px; max-height: 100px; border-radius: 6px; display: none; margin-top: 8px; object-fit: cover; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
-        th, td { border: 1px solid var(--border); padding: 8px; text-align: center; vertical-align: middle; }
-        th { background: #f3f4f6; }
-    </style>
+    <title>ERP Core & Mercado Integrado</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS para Exportação Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
-<body>
+<body class="bg-gray-900 text-gray-100 pb-20 font-sans">
 
-<div class="container">
-    <!-- Bloco 1: Leitor de Código de Barras -->
-    <div class="card">
-        <h2>Enriqueta RFID</h2>
-        <button onclick="iniciarLeitor()">📷 Ler Código de Barras</button>
-        <div id="reader"></div>
-        <button id="btn-stop" class="sec" onclick="pararLeitor()" style="display:none;">Parar Leitor</button>
-    </div>
+    <!-- Header / Mentoria Estratégica -->
+    <header class="bg-indigo-700 text-white p-4 sticky top-0 z-50 shadow-lg">
+        <h1 class="text-xl font-bold">ERP Core & Mentor System</h1>
+        <p class="text-xs text-indigo-200" id="mentorTip">💡 Carregando orientação estratégica...</p>
+    </header>
 
-    <!-- Bloco 2: Formulário de Cadastro -->
-    <div class="card">
-        <h3>📦 Cadastrar Produto</h3>
-        <form onsubmit="salvar(event)">
-            <label for="codigo">Código do Produto</label>
-            <input type="text" id="codigo" required placeholder="Digite ou leia o código">
+    <!-- Navegação em Abas Mobile -->
+    <nav class="flex justify-around bg-gray-800 border-b border-gray-700 sticky top-14 z-40 text-xs font-semibold text-gray-300 overflow-x-auto">
+        <button onclick="switchTab('tab-cliente', this)" class="p-3 tab-btn border-b-2 border-indigo-500 text-indigo-400 whitespace-nowrap">1. Cliente</button>
+        <button onclick="switchTab('tab-servicos', this)" class="p-3 tab-btn border-b-2 border-transparent whitespace-nowrap">2. Mão de Obra</button>
+        <button onclick="switchTab('tab-estoque', this)" class="p-3 tab-btn border-b-2 border-transparent whitespace-nowrap">3. Estoque</button>
+        <button onclick="switchTab('tab-orcamento', this)" class="p-3 tab-btn border-b-2 border-transparent whitespace-nowrap">4. Orçamento</button>
+        <button onclick="switchTab('tab-gestao', this)" class="p-3 tab-btn border-b-2 border-transparent whitespace-nowrap">5. Pós-Obra</button>
+    </nav>
 
-            <label for="descricao">Descrição / Produto</label>
-            <input type="text" id="descricao" required placeholder="Ex: Caderno A5">
+    <main class="p-4 max-w-lg mx-auto space-y-4">
 
-            <div class="row">
-                <div class="col">
-                    <label for="categoria">Categoria</label>
-                    <input type="text" id="categoria" value="Geral">
+        <!-- ABA 1: CADASTRO DO CLIENTE -->
+        <section id="tab-cliente" class="tab-content block space-y-4">
+            <h2 class="text-lg font-bold text-indigo-300">Cadastro do Cliente</h2>
+            <form id="formCliente" class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow space-y-3">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Nome / Razão Social</label>
+                    <input type="text" id="cliNome" placeholder="Ex: Solar Tech LTDA" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" required>
                 </div>
-                <div class="col">
-                    <label for="marca">Marca</label>
-                    <input type="text" id="marca" value="Genérica">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Telefone / WhatsApp</label>
+                    <input type="tel" id="cliTelefone" placeholder="(00) 00000-0000" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" required>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Endereço Completo</label>
+                    <input type="text" id="cliEndereco" placeholder="Rua, Número, Bairro, Cidade" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" required>
+                </div>
+                <button type="button" onclick="salvarCliente()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded font-bold text-sm transition">Salvar Dados do Cliente</button>
+            </form>
+            <div id="statusCliente" class="text-xs text-emerald-400 font-bold hidden bg-emerald-950 p-2 rounded border border-emerald-800 text-center">✓ Cliente registrado com sucesso!</div>
+        </section>
+
+        <!-- ABA 2: MÃO DE OBRA -->
+        <section id="tab-servicos" class="tab-content hidden space-y-4">
+            <h2 class="text-lg font-bold text-indigo-300">Mão de Obra Especializada</h2>
+            <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow space-y-3">
+                <label class="block text-xs text-gray-400">Selecione o Perfil Técnico:</label>
+                <select id="servicoSelect" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500">
+                    <option value="120">Técnico Fotovoltaico/Elétrico (R$ 120,00/h)</option>
+                    <option value="80">Assistente Técnico Generalista (R$ 80,00/h)</option>
+                    <option value="150">Engenheiro / Consultor Sênior (R$ 150,00/h)</option>
+                </select>
+                <input type="number" id="horasTrabalho" placeholder="Horas estimadas" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" min="1">
+                <button type="button" onclick="adicionarServico()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded font-bold text-sm transition">Adicionar Mão de Obra</button>
+            </div>
+            <div class="bg-gray-800 p-3 rounded-lg border border-gray-700">
+                <h3 class="text-xs font-bold text-gray-400 mb-2">Itens Adicionados:</h3>
+                <ul id="listaServicosAdicionados" class="text-xs space-y-2"></ul>
+            </div>
+        </section>
+
+        <!-- ABA 3: ESTOQUE E MATERIAIS TECH -->
+        <section id="tab-estoque" class="tab-content hidden space-y-4">
+            <h2 class="text-lg font-bold text-indigo-300">Estoque de Materiais & Equipamentos</h2>
+            <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow space-y-3">
+                <label class="block text-xs text-gray-400">Selecione o Insumo / Equipamento:</label>
+                <select id="estoqueSelect" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500">
+                    <option value="350">Painel Solar Fotovoltaico (Custo: R$ 350,00)</option>
+                    <option value="2500">Inversor String 3kW (Custo: R$ 2.500,00)</option>
+                    <option value="45">Estrutura de Fixação / Metro (Custo: R$ 45,00)</option>
+                    <option value="12">Cabo Solar 6mm / Metro (Custo: R$ 12,00)</option>
+                    <option value="1200">Módulo de Bateria / BESS (Custo: R$ 1.200,00)</option>
+                </select>
+                <input type="number" id="qtdMaterial" placeholder="Quantidade" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" min="1">
+                <button type="button" onclick="adicionarMaterial()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded font-bold text-sm transition">Adicionar Insumo</button>
+            </div>
+            <div class="bg-gray-800 p-3 rounded-lg border border-gray-700">
+                <h3 class="text-xs font-bold text-gray-400 mb-2">Insumos no Orçamento:</h3>
+                <ul id="listaMateriaisAdicionados" class="text-xs space-y-2"></ul>
+            </div>
+        </section>
+
+        <!-- ABA 4: GERADOR DE ORÇAMENTO & PRECIFICAÇÃO -->
+        <section id="tab-orcamento" class="tab-content hidden space-y-4">
+            <h2 class="text-lg font-bold text-indigo-300">Gerador de Proposta Comercial</h2>
+            <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow space-y-4">
+                <button type="button" onclick="calcularOrcamento()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white p-3 rounded-lg font-bold text-sm transition flex justify-center items-center gap-2">
+                    ⚡ Processar Custo & Aplicar Margem (50%)
+                </button>
+                
+                <div id="relatorioOrcamento" class="hidden border-t border-gray-700 pt-3 space-y-3 text-sm">
+                    <div class="flex justify-between text-gray-300">
+                        <span>Custo Direto Total:</span>
+                        <strong id="valCusto" class="text-white">R$ 0,00</strong>
+                    </div>
+                    <div class="flex justify-between text-emerald-400">
+                        <span>Preço Final (+50% Lucro):</span>
+                        <strong id="valVenta" class="text-lg">R$ 0,00</strong>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Status do Negócio:</label>
+                        <select id="statusOrcamento" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-xs text-white focus:outline-none">
+                            <option value="Em Análise">Em Análise do Cliente</option>
+                            <option value="Aprovado">Aprovado / Fechado</option>
+                            <option value="Recusado">Não Aprovado</option>
+                        </select>
+                    </div>
+
+                    <button type="button" onclick="exportarExcel()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded font-bold text-xs transition flex justify-center items-center gap-2">
+                        📥 Baixar Planilha Completa (.XLSX)
+                    </button>
                 </div>
             </div>
+        </section>
 
-            <div class="row">
-                <div class="col">
-                    <label for="qtd">Qtd</label>
-                    <input type="number" id="qtd" value="1" min="1">
+        <!-- ABA 5: GESTÃO & PÓS-OBRA -->
+        <section id="tab-gestao" class="tab-content hidden space-y-4">
+            <h2 class="text-lg font-bold text-indigo-300">Pós-Obra & Entrega Técnica</h2>
+            <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow space-y-3">
+                <label class="block text-xs text-gray-400">Data Agendada para Comissionamento/Visita:</label>
+                <input type="date" id="dataVisita" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-xs text-white">
+                
+                <label class="block text-xs font-semibold text-gray-300 mt-2">Checklist de Entrega:</label>
+                <div class="space-y-2 text-xs text-gray-300">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="chk1" class="rounded border-gray-700 bg-gray-900 text-indigo-600"> Testes elétricos e comissionamento concluídos
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="chk2" class="rounded border-gray-700 bg-gray-900 text-indigo-600"> Assinatura do Termo de Aceite do Cliente
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="chk3" class="rounded border-gray-700 bg-gray-900 text-indigo-600"> Envio de formulário de satisfação (NPS)
+                    </label>
                 </div>
-                <div class="col">
-                    <label for="preco">Preço (€)</label>
-                    <input type="number" step="0.01" id="preco" value="0.00">
+
+                <div class="mt-4 p-3 bg-indigo-950/60 rounded-lg border border-indigo-800">
+                    <h3 class="text-xs font-bold text-indigo-300 mb-1">🚀 Mentor Growth Tip</h3>
+                    <p class="text-xs text-indigo-200">Após o encerramento da obra, solicite uma avaliação de 5 estrelas no Google Meu Negócio em troca de 6 meses adicionais de suporte preventivo.</p>
                 </div>
             </div>
+        </section>
 
-            <label for="foto-input">📷 Foto do Produto (JPG)</label>
-            <input type="file" id="foto-input" accept="image/jpeg, image/png" capture="environment" onchange="carregarEComprimirFoto(event)">
-            <img id="preview" alt="Pré-visualização">
-            <input type="hidden" id="foto-base64">
+    </main>
 
-            <button type="submit">Salvar no Estoque Local</button>
-        </form>
-    </div>
+    <!-- LÓGICA INTEGRADA EM JAVASCRIPT -->
+    <script>
+        // Objeto global de estado do sistema
+        let orcamentoAtual = {
+            cliente: {},
+            servicos: [],
+            materiais: [],
+            custoTotal: 0,
+            precoFinal: 0
+        };
 
-    <!-- Bloco 3: Tabela e Exportação -->
-    <div class="card">
-        <h3>📊 Estoque</h3>
-        <button class="sec" onclick="exportarExcel()">📥 Exportar Planilha com Fotos (.xls)</button>
-        <div style="overflow-x:auto;">
-            <table id="tabela">
-                <thead>
-                    <tr>
-                        <th>Foto</th>
-                        <th>Código</th>
-                        <th>Produto</th>
-                        <th>Categoria</th>
-                        <th>Marca</th>
-                        <th>Qtd</th>
-                        <th>Preço</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-    </div>
-</div>
+        const dicasMentor = [
+            "Estratégia: Ofereça uma opção Standard e outra Premium para expandir a margem.",
+            "Compliance: Mantenha todos os termos de entrega técnica assinados digitalmente ou em papel.",
+            "Marketing: Solas de pós-obra são excelentes provas sociais para captação de novos clientes.",
+            "Financeiro: Monitore a variação de custo de matérias-primas antes de fechar propostas longas."
+        ];
 
-<script>
-    let db;
-    let html5QrCode = null;
+        // Atualização dinâmica da dica de mentoria
+        document.getElementById('mentorTip').innerText = "💡 " + dicasMentor[Math.floor(Math.random() * dicasMentor.length)];
 
-    // Inicialização do Banco de Dados IndexedDB
-    const request = indexedDB.open("EnriquetaDB", 1);
-    request.onsuccess = (e) => { 
-        db = e.target.result; 
-        carregarTabela(); 
-    };
-    request.onupgradeneeded = (e) => { 
-        e.target.result.createObjectStore("produtos", { keyPath: "codigo" }); 
-    };
-
-    // Leitor de Código de Barras
-    function iniciarLeitor() {
-        document.getElementById("reader").style.display = "block";
-        document.getElementById("btn-stop").style.display = "block";
-        
-        if (!html5QrCode) {
-            html5QrCode = new Html5Qrcode("reader");
+        // Controle de Navegação em Abas
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('border-indigo-500', 'text-indigo-400');
+                el.classList.add('border-transparent');
+            });
+            
+            document.getElementById(tabId).classList.remove('hidden');
+            btnElement.classList.remove('border-transparent');
+            btnElement.classList.add('border-indigo-500', 'text-indigo-400');
         }
 
-        html5QrCode.start(
-            { facingMode: "environment" }, 
-            { fps: 10, qrbox: { width: 250, height: 150 } }, 
-            (decodedText) => {
-                document.getElementById("codigo").value = decodedText;
-                pararLeitor();
-                alert("Código Lido com Sucesso: " + decodedText);
-            }
-        ).catch((err) => {
-            console.error("Erro na câmara:", err);
-            alert("Não foi possível aceder à câmara. Verifique as permissões do dispositivo.");
-            pararLeitor();
-        });
-    }
-
-    function pararLeitor() {
-        if (html5QrCode && html5QrCode.isScanning) {
-            html5QrCode.stop().then(() => {
-                html5QrCode.clear();
-                document.getElementById("reader").style.display = "none";
-                document.getElementById("btn-stop").style.display = "none";
-            }).catch(err => console.error(err));
-        } else {
-            document.getElementById("reader").style.display = "none";
-            document.getElementById("btn-stop").style.display = "none";
-        }
-    }
-
-    // Processamento da Foto (Compressão Leve para 300px para Garantir Compatibilidade Mobile)
-    function carregarEComprimirFoto(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement("canvas");
-                let width = img.width;
-                let height = img.height;
-                const maxDim = 300;
-
-                if (width > height && width > maxDim) {
-                    height = Math.round((height *= maxDim / width));
-                    width = maxDim;
-                } else if (height > maxDim) {
-                    width = Math.round((width *= maxDim / height));
-                    height = maxDim;
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(img, 0, 0, width, height);
-
-                const compressedBase64 = canvas.toDataURL("image/jpeg", 0.6);
-
-                document.getElementById("foto-base64").value = compressedBase64;
-                const previewImg = document.getElementById("preview");
-                previewImg.src = compressedBase64;
-                previewImg.style.display = "block";
+        // 1. Registro do Cliente
+        function salvarCliente() {
+            orcamentoAtual.cliente = {
+                nome: document.getElementById('cliNome').value,
+                telefone: document.getElementById('cliTelefone').value,
+                endereco: document.getElementById('cliEndereco').value
             };
-            img.src = evt.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-
-    // Salvar Registo
-    function salvar(e) {
-        e.preventDefault();
-        const p = {
-            codigo: document.getElementById("codigo").value.trim(),
-            descricao: document.getElementById("descricao").value.trim(),
-            categoria: document.getElementById("categoria").value.trim(),
-            marca: document.getElementById("marca").value.trim(),
-            qtd: document.getElementById("qtd").value,
-            preco: parseFloat(document.getElementById("preco").value).toFixed(2),
-            foto: document.getElementById("foto-base64").value
-        };
-
-        const tx = db.transaction(["produtos"], "readwrite");
-        tx.objectStore("produtos").put(p);
-        tx.oncomplete = () => {
-            alert("Produto cadastrado com sucesso!");
-            e.target.reset();
-            document.getElementById("preview").style.display = "none";
-            document.getElementById("foto-base64").value = "";
-            carregarTabela();
-        };
-    }
-
-    // Carregar Tabela no HTML
-    function carregarTabela() {
-        if (!db) return;
-        const tx = db.transaction(["produtos"], "readonly");
-        tx.objectStore("produtos").getAll().onsuccess = (e) => {
-            const tbody = document.querySelector("#tabela tbody");
-            tbody.innerHTML = "";
-            e.target.result.forEach(p => {
-                const img = p.foto ? `<img src="${p.foto}" width="45" height="45" style="object-fit:cover; border-radius:4px;">` : "-";
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${img}</td>
-                        <td>${p.codigo}</td>
-                        <td>${p.descricao}</td>
-                        <td>${p.categoria}</td>
-                        <td>${p.marca}</td>
-                        <td>${p.qtd}</td>
-                        <td>${p.preco} €</td>
-                    </tr>`;
-            });
-        };
-    }
-
-    // EXPORTAÇÃO COMPATÍVEL COM TODOS OS DISPOSITIVOS (Android, iOS, Windows, Mac)
-    function exportarExcel() {
-        if (!db) return;
-        const tx = db.transaction(["produtos"], "readonly");
-        tx.objectStore("produtos").getAll().onsuccess = (e) => {
-            const produtos = e.target.result;
-            if (produtos.length === 0) {
-                alert("Nenhum produto registado para exportar.");
-                return;
+            if (orcamentoAtual.cliente.nome) {
+                document.getElementById('statusCliente').classList.remove('hidden');
             }
+        }
 
-            let htmlTabela = `\uFEFF<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-            <head>
-                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-                <!--[if gte mso 9]>
-                <xml>
-                    <x:ExcelWorkbook>
-                        <x:ExcelWorksheets>
-                            <x:ExcelWorksheet>
-                                <x:Name>Estoque Enriqueta</x:Name>
-                                <x:WorksheetOptions>
-                                    <x:DisplayGridlines/>
-                                </x:WorksheetOptions>
-                            </x:ExcelWorksheet>
-                        </x:ExcelWorksheets>
-                    </x:ExcelWorkbook>
-                </xml>
-                <![endif]-->
-                <style>
-                    table { border-collapse: collapse; width: 100%; }
-                    th, td { border: 1px solid #cccccc; text-align: center; vertical-align: middle; padding: 6px; }
-                    th { background-color: #4f46e5; color: #ffffff; font-weight: bold; }
-                    img { width: 50px; height: 50px; object-fit: cover; }
-                </style>
-            </head>
-            <body>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Foto</th>
-                            <th>Código</th>
-                            <th>Produto</th>
-                            <th>Categoria</th>
-                            <th>Marca</th>
-                            <th>Quantidade</th>
-                            <th>Preço (€)</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+        // 2. Mão de Obra
+        function adicionarServico() {
+            const select = document.getElementById('servicoSelect');
+            const horas = parseFloat(document.getElementById('horasTrabalho').value) || 0;
+            const valorHora = parseFloat(select.value);
+            const desc = select.options[select.selectedIndex].text.split('(')[0].trim();
 
-            produtos.forEach(p => {
-                const imgTag = p.foto ? `<img src="${p.foto}" width="50" height="50">` : 'Sem Foto';
-                htmlTabela += `
-                    <tr>
-                        <td style="height: 55px; width: 60px;">${imgTag}</td>
-                        <td style="mso-number-format:'\\@';">${p.codigo}</td>
-                        <td>${p.descricao}</td>
-                        <td>${p.categoria}</td>
-                        <td>${p.marca}</td>
-                        <td>${p.qtd}</td>
-                        <td>${p.preco}</td>
-                    </tr>`;
-            });
-
-            htmlTabela += `
-                    </tbody>
-                </table>
-            </body>
-            </html>`;
-
-            const blob = new Blob([htmlTabela], { type: 'application/vnd.ms-excel;charset=utf-8' });
-            const filename = "estoque_enriqueta_excel.xls";
-
-            if (navigator.msSaveOrOpenBlob) {
-                navigator.msSaveOrOpenBlob(blob, filename);
-            } else {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => {
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }, 100);
+            if (horas > 0) {
+                const total = horas * valorHora;
+                orcamentoAtual.servicos.push({ desc, horas, valorHora, total });
+                
+                const ul = document.getElementById('listaServicosAdicionados');
+                ul.innerHTML += `<li class="flex justify-between border-b border-gray-700 pb-1 text-gray-300">
+                    <span>${desc} (${horas}h)</span>
+                    <strong class="text-indigo-400">R$ ${total.toFixed(2)}</strong>
+                </li>`;
+                document.getElementById('horasTrabalho').value = '';
             }
-        };
-    }
-</script>
+        }
+
+        // 3. Materiais / Estoque
+        function adicionarMaterial() {
+            const select = document.getElementById('estoqueSelect');
+            const qtd = parseFloat(document.getElementById('qtdMaterial').value) || 0;
+            const custoUnit = parseFloat(select.value);
+            const desc = select.options[select.selectedIndex].text.split('(')[0].trim();
+
+            if (qtd > 0) {
+                const total = qtd * custoUnit;
+                orcamentoAtual.materiais.push({ desc, qtd, custoUnit, total });
+                
+                const ul = document.getElementById('listaMateriaisAdicionados');
+                ul.innerHTML += `<li class="flex justify-between border-b border-gray-700 pb-1 text-gray-300">
+                    <span>${desc} (x${qtd})</span>
+                    <strong class="text-indigo-400">R$ ${total.toFixed(2)}</strong>
+                </li>`;
+                document.getElementById('qtdMaterial').value = '';
+            }
+        }
+
+        // 4. Cálculos & Precificação (+50% Margem)
+        function calcularOrcamento() {
+            const custoServicos = orcamentoAtual.servicos.reduce((acc, i) => acc + i.total, 0);
+            const custoMateriais = orcamentoAtual.materiais.reduce((acc, i) => acc + i.total, 0);
+
+            orcamentoAtual.custoTotal = custoServicos + custoMateriais;
+            orcamentoAtual.precoFinal = orcamentoAtual.custoTotal * 1.5; // Margem de 50%
+
+            document.getElementById('valCusto').innerText = `R$ ${orcamentoAtual.custoTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('valVenta').innerText = `R$ ${orcamentoAtual.precoFinal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('relatorioOrcamento').classList.remove('hidden');
+        }
+
+        // 5. Exportação de Planilha Excel
+        function exportarExcel() {
+            const status = document.getElementById('statusOrcamento').value;
+            const dataVisita = document.getElementById('dataVisita').value || "Não agendada";
+
+            const dados = [
+                ["RELATÓRIO DE ORÇAMENTO E PROPOSTA COMERCIAL"],
+                [""],
+                ["DADOS DO CLIENTE"],
+                ["Nome", orcamentoAtual.cliente.nome || "N/A"],
+                ["Telefone", orcamentoAtual.cliente.telefone || "N/A"],
+                ["Endereço", orcamentoAtual.cliente.endereco || "N/A"],
+                ["Status do Orçamento", status],
+                ["Data da Visita Técnica", dataVisita],
+                [""],
+                ["DETALHAMENTO DE MÃO DE OBRA"],
+                ["Descrição", "Horas", "Valor/Hora (R$)", "Total (R$)"],
+                ...orcamentoAtual.servicos.map(s => [s.desc, s.horas, s.valorHora, s.total]),
+                [""],
+                ["DETALHAMENTO DE MATERIAIS / ESTOQUE"],
+                ["Descrição", "Quantidade", "Custo Unit. (R$)", "Total (R$)"],
+                ...orcamentoAtual.materiais.map(m => [m.desc, m.qtd, m.custoUnit, m.total]),
+                [""],
+                ["RESUMO FINANCEIRO"],
+                ["Custo Direto da Operação", orcamentoAtual.custoTotal],
+                ["Margem Aplicada", "50%"],
+                ["PREÇO FINAL AO CLIENTE", orcamentoAtual.precoFinal]
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(dados);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Orcamento");
+            
+            const nomeArquivo = `Orcamento_${(orcamentoAtual.cliente.nome || 'Cliente').replace(/\s+/g, '_')}.xlsx`;
+            XLSX.writeFile(wb, nomeArquivo);
+        }
+    </script>
 </body>
 </html>
