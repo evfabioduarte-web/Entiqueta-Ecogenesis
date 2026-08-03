@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP Core - Com Memória Permanente & OS Automática</title>
+    <title>ERP Core - Sistema Completo com Botão Excluir</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS para Exportação Excel -->
@@ -24,7 +24,7 @@
 
     <!-- Navegação em Abas Mobile -->
     <nav class="flex justify-around bg-gray-800 border-b border-gray-700 sticky top-14 z-40 text-xs font-semibold text-gray-300 overflow-x-auto">
-        <button onclick="switchTab('tab-cliente', this)" class="p-3 tab-btn border-b-2 border-indigo-500 text-indigo-400 whitespace-nowrap">1. Clientes</button>
+        <button onclick="switchTab('tab-cliente', this)" class="p-3 tab-btn border-b-2 border-indigo-500 text-indigo-400 whitespace-nowrap">1. Cadastros</button>
         <button onclick="switchTab('tab-servicos', this)" class="p-3 tab-btn border-b-2 border-transparent whitespace-nowrap">2. Mão de Obra</button>
         <button onclick="switchTab('tab-estoque', this)" class="p-3 tab-btn border-b-2 border-transparent whitespace-nowrap">3. Estoque</button>
         <button onclick="switchTab('tab-orcamento', this)" class="p-3 tab-btn border-b-2 border-transparent whitespace-nowrap">4. Orçamento & OS</button>
@@ -33,10 +33,13 @@
 
     <main class="p-4 max-w-lg mx-auto space-y-4">
 
-        <!-- ABA 1: CADASTRO, MEMÓRIA E LISTA DE CLIENTES -->
+        <!-- ABA 1: GESTÃO DE CADASTROS (CLIENTES, MÃO DE OBRA E MATERIAIS) -->
         <section id="tab-cliente" class="tab-content block space-y-4">
-            <h2 class="text-lg font-bold text-indigo-300">Gestão de Clientes & Memória</h2>
+            <h2 class="text-lg font-bold text-indigo-300">Central de Cadastros</h2>
+            
+            <!-- 1.1 Cadastro de Clientes -->
             <form id="formCliente" class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow space-y-3" onsubmit="salvarCliente(event)">
+                <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wider">👤 Cadastrar Novo Cliente</h3>
                 <div>
                     <label class="block text-xs text-gray-400 mb-1">Nome / Razão Social</label>
                     <input type="text" id="cliNome" placeholder="Ex: João Silva ou Solar Tech" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" required>
@@ -49,29 +52,61 @@
                     <label class="block text-xs text-gray-400 mb-1">Endereço Completo</label>
                     <input type="text" id="cliEndereco" placeholder="Rua, Número, Bairro, Cidade" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" required>
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded font-bold text-sm transition">+ Cadastrar e Salvar na Memória</button>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded font-bold text-sm transition">+ Salvar Cliente</button>
             </form>
 
-            <div class="bg-gray-800 p-3 rounded-lg border border-gray-700 space-y-3">
+            <!-- 1.2 Cadastro de Perfil Técnico -->
+            <form id="formPerfil" class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow space-y-3" onsubmit="salvarPerfilTecnico(event)">
+                <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wider">🛠️ Cadastrar Perfil Técnico (Mão de Obra)</h3>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Descrição do Cargo / Perfil</label>
+                    <input type="text" id="perfilNome" placeholder="Ex: Eletricista Industrial, Auxiliar" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" required>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Valor/Hora (R$)</label>
+                    <input type="number" step="0.01" id="perfilValor" placeholder="Ex: 95.00" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" required>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded font-bold text-sm transition">+ Salvar Perfil Técnico</button>
+            </form>
+
+            <!-- 1.3 Cadastro de Insumos / Materiais -->
+            <form id="formInsumo" class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow space-y-3" onsubmit="salvarInsumo(event)">
+                <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wider">📦 Cadastrar Insumo / Equipamento</h3>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Descrição do Item / Equipamento</label>
+                    <input type="text" id="insumoNome" placeholder="Ex: Disjuntor 32A, Cabo 10mm" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" required>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Custo Unitário (R$)</label>
+                    <input type="number" step="0.01" id="insumoCusto" placeholder="Ex: 45.50" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" required>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded font-bold text-sm transition">+ Salvar Insumo/Equipamento</button>
+            </form>
+
+            <!-- Listas da Memória -->
+            <div class="bg-gray-800 p-3 rounded-lg border border-gray-700 space-y-4">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-xs font-bold text-gray-400">Clientes Salvos na Memória:</h3>
+                    <h3 class="text-xs font-bold text-gray-400">Clientes Salvos:</h3>
                     <button onclick="exportarListaClientes()" class="text-[11px] bg-emerald-700 hover:bg-emerald-600 text-white px-2 py-1 rounded font-bold transition">
                         📊 Exportar Lista (.XLSX)
                     </button>
                 </div>
-                <ul id="listaClientesCadastrados" class="text-xs space-y-2">
-                    <li class="text-gray-500 italic">Nenhum cliente salvo na memória.</li>
-                </ul>
+                <ul id="listaClientesCadastrados" class="text-xs space-y-2"></ul>
+
+                <h3 class="text-xs font-bold text-gray-400 pt-2 border-t border-gray-700">Perfis Técnicos Cadastrados:</h3>
+                <ul id="listaPerfisCadastrados" class="text-xs space-y-2"></ul>
+
+                <h3 class="text-xs font-bold text-gray-400 pt-2 border-t border-gray-700">Insumos/Equipamentos Cadastrados:</h3>
+                <ul id="listaInsumosCadastrados" class="text-xs space-y-2"></ul>
 
                 <button onclick="limparMemoriaTotal()" class="w-full mt-4 bg-red-900/40 hover:bg-red-900/80 text-red-300 border border-red-800/60 p-1.5 rounded text-[11px] font-semibold transition">
-                    ⚠️ Limpar Memória do Navegador
+                    ⚠️ Limpar Toda a Memória Local
                 </button>
             </div>
         </section>
 
         <!-- ABA 2: MÃO DE OBRA -->
         <section id="tab-servicos" class="tab-content hidden space-y-4">
-            <!-- Selector de Cliente -->
             <div class="bg-indigo-950/70 border border-indigo-800 p-2.5 rounded-lg">
                 <label class="block text-xs text-indigo-300 font-semibold mb-1">Selecione o Cliente na Memória:</label>
                 <select onchange="selecionarClienteGlobal(this.value)" class="cliente-selector w-full p-2 bg-gray-900 border border-indigo-700 rounded text-xs text-white">
@@ -81,12 +116,8 @@
 
             <h2 class="text-lg font-bold text-indigo-300">Mão de Obra Especializada</h2>
             <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow space-y-3">
-                <label class="block text-xs text-gray-400">Selecione o Perfil Técnico:</label>
-                <select id="servicoSelect" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500">
-                    <option value="120">Técnico Fotovoltaico/Elétrico (R$ 120,00/h)</option>
-                    <option value="80">Assistente Técnico Generalista (R$ 80,00/h)</option>
-                    <option value="150">Engenheiro / Consultor Sênior (R$ 150,00/h)</option>
-                </select>
+                <label class="block text-xs text-gray-400">Selecione o Perfil Técnico Cadastrado:</label>
+                <select id="servicoSelect" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500"></select>
                 <input type="number" id="horasTrabalho" placeholder="Horas estimadas" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" min="1">
                 <button type="button" onclick="adicionarServico()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded font-bold text-sm transition">Adicionar Mão de Obra</button>
             </div>
@@ -98,7 +129,6 @@
 
         <!-- ABA 3: ESTOQUE E MATERIAIS -->
         <section id="tab-estoque" class="tab-content hidden space-y-4">
-            <!-- Selector de Cliente -->
             <div class="bg-indigo-950/70 border border-indigo-800 p-2.5 rounded-lg">
                 <label class="block text-xs text-indigo-300 font-semibold mb-1">Selecione o Cliente na Memória:</label>
                 <select onchange="selecionarClienteGlobal(this.value)" class="cliente-selector w-full p-2 bg-gray-900 border border-indigo-700 rounded text-xs text-white">
@@ -108,14 +138,8 @@
 
             <h2 class="text-lg font-bold text-indigo-300">Estoque de Materiais & Equipamentos</h2>
             <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow space-y-3">
-                <label class="block text-xs text-gray-400">Selecione o Insumo / Equipamento:</label>
-                <select id="estoqueSelect" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500">
-                    <option value="350">Painel Solar Fotovoltaico (Custo: R$ 350,00)</option>
-                    <option value="2500">Inversor String 3kW (Custo: R$ 2.500,00)</option>
-                    <option value="45">Estrutura de Fixação / Metro (Custo: R$ 45,00)</option>
-                    <option value="12">Cabo Solar 6mm / Metro (Custo: R$ 12,00)</option>
-                    <option value="1200">Módulo de Bateria / BESS (Custo: R$ 1.200,00)</option>
-                </select>
+                <label class="block text-xs text-gray-400">Selecione o Insumo Cadastrado:</label>
+                <select id="estoqueSelect" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500"></select>
                 <input type="number" id="qtdMaterial" placeholder="Quantidade" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" min="1">
                 <button type="button" onclick="adicionarMaterial()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded font-bold text-sm transition">Adicionar Insumo</button>
             </div>
@@ -127,7 +151,6 @@
 
         <!-- ABA 4: GERADOR DE ORÇAMENTO & OS AUTOMÁTICA -->
         <section id="tab-orcamento" class="tab-content hidden space-y-4">
-            <!-- Selector de Cliente -->
             <div class="bg-indigo-950/70 border border-indigo-800 p-2.5 rounded-lg">
                 <label class="block text-xs text-indigo-300 font-semibold mb-1">Selecione o Cliente na Memória:</label>
                 <select onchange="selecionarClienteGlobal(this.value)" class="cliente-selector w-full p-2 bg-gray-900 border border-indigo-700 rounded text-xs text-white">
@@ -142,7 +165,6 @@
                 </button>
                 
                 <div id="relatorioOrcamento" class="hidden border-t border-gray-700 pt-3 space-y-3 text-sm">
-                    <!-- Bloco da OS Gerada -->
                     <div class="bg-gray-900 p-3 rounded border border-emerald-500/40 space-y-1 text-xs">
                         <div class="flex justify-between items-center text-emerald-400 font-bold">
                             <span>ORDEM DE SERVIÇO GERADA</span>
@@ -180,7 +202,6 @@
 
         <!-- ABA 5: GESTÃO & PÓS-OBRA -->
         <section id="tab-gestao" class="tab-content hidden space-y-4">
-            <!-- Selector de Cliente -->
             <div class="bg-indigo-950/70 border border-indigo-800 p-2.5 rounded-lg">
                 <label class="block text-xs text-indigo-300 font-semibold mb-1">Selecione o Cliente na Memória:</label>
                 <select onchange="selecionarClienteGlobal(this.value)" class="cliente-selector w-full p-2 bg-gray-900 border border-indigo-700 rounded text-xs text-white">
@@ -210,32 +231,43 @@
 
     </main>
 
-    <!-- LÓGICA DO SISTEMA EM JAVASCRIPT COM MEMÓRIA PERSISTENTE -->
+    <!-- LÓGICA DO SISTEMA COM EXCLUSÃO DE ITENS DOS ORÇAMENTOS -->
     <script>
-        // 1. CARREGAR DADOS DA MEMÓRIA DO NAVEGADOR (localStorage)
         let clientes = JSON.parse(localStorage.getItem('erp_clientes_db')) || [];
+        let perfisTecnicos = JSON.parse(localStorage.getItem('erp_perfis_db')) || [
+            { id: '1', desc: 'Técnico Fotovoltaico/Elétrico', valorHora: 120 },
+            { id: '2', desc: 'Assistente Técnico Generalista', valorHora: 80 },
+            { id: '3', desc: 'Engenheiro / Consultor Sênior', valorHora: 150 }
+        ];
+        let insumosEstoque = JSON.parse(localStorage.getItem('erp_insumos_db')) || [
+            { id: '1', desc: 'Painel Solar Fotovoltaico', custoUnit: 350 },
+            { id: '2', desc: 'Inversor String 3kW', custoUnit: 2500 },
+            { id: '3', desc: 'Estrutura de Fixação / Metro', custoUnit: 45 },
+            { id: '4', desc: 'Cabo Solar 6mm / Metro', custoUnit: 12 },
+            { id: '5', desc: 'Módulo de Bateria / BESS', custoUnit: 1200 }
+        ];
+
         let clienteAtivoId = clientes.length > 0 ? clientes[0].id : null;
 
         const dicasMentor = [
-            "Estratégia: Cada Ordem de Serviço gerada deve conter prazo claro de execução.",
+            "Estratégia: Mantenha sua tabela de perfis técnicos e insumos sempre atualizada.",
             "Compliance: Guarde o histórico de OS de cada cliente para manutenções preventivas.",
             "Marketing: Solas de pós-obra concluídas são excelentes provas sociais para novos orçamentos.",
-            "Gestão: Os dados permanecem salvos localmente mesmo se você recarregar a página."
+            "Gestão: Cadastre novos materiais e custos hora conforme seu fornecedor reajustar."
         ];
 
         document.getElementById('mentorTip').innerText = "💡 " + dicasMentor[Math.floor(Math.random() * dicasMentor.length)];
 
-        // Inicializar a interface assim que carregar
         window.onload = function() {
             atualizarUI();
         };
 
-        // Salvar estado atual na memória permanente
         function persistirMemoria() {
             localStorage.setItem('erp_clientes_db', JSON.stringify(clientes));
+            localStorage.setItem('erp_perfis_db', JSON.stringify(perfisTecnicos));
+            localStorage.setItem('erp_insumos_db', JSON.stringify(insumosEstoque));
         }
 
-        // Alternar abas
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(el => {
@@ -248,11 +280,11 @@
             btnElement.classList.add('border-indigo-500', 'text-indigo-400');
         }
 
-        // Cadastrar e salvar novo cliente na memória
+        // CADASTROS (ABA 1)
         function salvarCliente(e) {
             e.preventDefault();
             const id = Date.now().toString();
-            const novoCliente = {
+            clientes.push({
                 id,
                 nome: document.getElementById('cliNome').value,
                 telefone: document.getElementById('cliTelefone').value,
@@ -262,39 +294,81 @@
                 custoTotal: 0,
                 precoFinal: 0,
                 ordemServico: null
-            };
-
-            clientes.push(novoCliente);
+            });
             clienteAtivoId = id;
-
-            persistirMemoria(); // Grava no localStorage
+            persistirMemoria();
             document.getElementById('formCliente').reset();
             atualizarUI();
-            alert("Cliente cadastrado e salvo na memória permanente!");
+            alert("Cliente salvo com sucesso!");
         }
 
+        function salvarPerfilTecnico(e) {
+            e.preventDefault();
+            const id = Date.now().toString();
+            perfisTecnicos.push({
+                id,
+                desc: document.getElementById('perfilNome').value,
+                valorHora: parseFloat(document.getElementById('perfilValor').value) || 0
+            });
+            persistirMemoria();
+            document.getElementById('formPerfil').reset();
+            atualizarUI();
+            alert("Perfil Técnico salvo!");
+        }
+
+        function salvarInsumo(e) {
+            e.preventDefault();
+            const id = Date.now().toString();
+            insumosEstoque.push({
+                id,
+                desc: document.getElementById('insumoNome').value,
+                custoUnit: parseFloat(document.getElementById('insumoCusto').value) || 0
+            });
+            persistirMemoria();
+            document.getElementById('formInsumo').reset();
+            atualizarUI();
+            alert("Insumo/Equipamento salvo!");
+        }
+
+        // EXCLUSÕES GERAIS
         function deletarCliente(id, e) {
             e.stopPropagation();
-            if (confirm("Tem certeza que deseja remover este cliente da memória?")) {
+            if (confirm("Remover cliente da memória?")) {
                 clientes = clientes.filter(c => c.id !== id);
-                if (clienteAtivoId === id) {
-                    clienteAtivoId = clientes.length > 0 ? clientes[0].id : null;
-                }
+                if (clienteAtivoId === id) clienteAtivoId = clientes.length > 0 ? clientes[0].id : null;
+                persistirMemoria();
+                atualizarUI();
+            }
+        }
+
+        function deletarPerfil(id) {
+            if (confirm("Remover este perfil técnico?")) {
+                perfisTecnicos = perfisTecnicos.filter(p => p.id !== id);
+                persistirMemoria();
+                atualizarUI();
+            }
+        }
+
+        function deletarInsumo(id) {
+            if (confirm("Remover este insumo?")) {
+                insumosEstoque = insumosEstoque.filter(i => i.id !== id);
                 persistirMemoria();
                 atualizarUI();
             }
         }
 
         function limparMemoriaTotal() {
-            if (confirm("ATENÇÃO: Deseja apagar TODOS os clientes e orçamentos salvos na memória local?")) {
-                localStorage.removeItem('erp_clientes_db');
+            if (confirm("ATENÇÃO: Deseja apagar TODOS os dados e cadastros salvos na memória local?")) {
+                localStorage.clear();
                 clientes = [];
+                perfisTecnicos = [];
+                insumosEstoque = [];
                 clienteAtivoId = null;
                 atualizarUI();
             }
         }
 
-        // Sincronizar UI com os dados da memória
+        // ATUALIZAÇÃO DA INTERFACE (UI)
         function atualizarUI() {
             const selectors = document.querySelectorAll('.cliente-selector');
             selectors.forEach(select => {
@@ -305,13 +379,20 @@
                 });
             });
 
-            // Atualizar lista da Aba 1
-            const listaUl = document.getElementById('listaClientesCadastrados');
-            if (clientes.length === 0) {
-                listaUl.innerHTML = '<li class="text-gray-500 italic">Nenhum cliente salvo na memória.</li>';
-            } else {
-                listaUl.innerHTML = clientes.map(c => `
-                    <li onclick="selecionarClienteGlobal('${c.id}')" class="p-2.5 bg-gray-900 rounded border ${c.id === clienteAtivoId ? 'border-indigo-500 bg-indigo-950/30' : 'border-gray-700'} flex justify-between items-center cursor-pointer">
+            const servSelect = document.getElementById('servicoSelect');
+            servSelect.innerHTML = perfisTecnicos.map(p => 
+                `<option value="${p.valorHora}">${p.desc} (R$ ${p.valorHora.toFixed(2)}/h)</option>`
+            ).join('');
+
+            const estSelect = document.getElementById('estoqueSelect');
+            estSelect.innerHTML = insumosEstoque.map(i => 
+                `<option value="${i.custoUnit}">${i.desc} (Custo: R$ ${i.custoUnit.toFixed(2)})</option>`
+            ).join('');
+
+            document.getElementById('listaClientesCadastrados').innerHTML = clientes.length === 0 ? 
+                '<li class="text-gray-500 italic">Nenhum cliente salvo.</li>' :
+                clientes.map(c => `
+                    <li onclick="selecionarClienteGlobal('${c.id}')" class="p-2 bg-gray-900 rounded border ${c.id === clienteAtivoId ? 'border-indigo-500 bg-indigo-950/30' : 'border-gray-700'} flex justify-between items-center cursor-pointer">
                         <div>
                             <strong class="text-indigo-300 block">${c.nome} ${c.ordemServico ? `<span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-1 rounded font-mono">${c.ordemServico.numero}</span>` : ''}</strong>
                             <span class="text-gray-400 text-[10px]">${c.telefone} | ${c.endereco}</span>
@@ -322,7 +403,24 @@
                         </div>
                     </li>
                 `).join('');
-            }
+
+            document.getElementById('listaPerfisCadastrados').innerHTML = perfisTecnicos.length === 0 ?
+                '<li class="text-gray-500 italic">Nenhum perfil salvo.</li>' :
+                perfisTecnicos.map(p => `
+                    <li class="p-1.5 bg-gray-900 rounded border border-gray-700 flex justify-between items-center text-gray-300">
+                        <span>${p.desc} - <strong class="text-indigo-400">R$ ${p.valorHora.toFixed(2)}/h</strong></span>
+                        <button onclick="deletarPerfil('${p.id}')" class="text-red-400 text-xs">✕</button>
+                    </li>
+                `).join('');
+
+            document.getElementById('listaInsumosCadastrados').innerHTML = insumosEstoque.length === 0 ?
+                '<li class="text-gray-500 italic">Nenhum insumo salvo.</li>' :
+                insumosEstoque.map(i => `
+                    <li class="p-1.5 bg-gray-900 rounded border border-gray-700 flex justify-between items-center text-gray-300">
+                        <span>${i.desc} - <strong class="text-indigo-400">R$ ${i.custoUnit.toFixed(2)}</strong></span>
+                        <button onclick="deletarInsumo('${i.id}')" class="text-red-400 text-xs">✕</button>
+                    </li>
+                `).join('');
 
             const cliente = getClienteAtivo();
             if (cliente) {
@@ -341,7 +439,7 @@
             return clientes.find(c => c.id === clienteAtivoId);
         }
 
-        // Mão de Obra
+        // OPERAÇÕES DE MÃO DE OBRA E ESTOQUE (COM EXCLUSÃO INDIVIDUAL)
         function adicionarServico() {
             const cliente = getClienteAtivo();
             if (!cliente) return alert("Selecione um cliente primeiro!");
@@ -356,20 +454,39 @@
                 persistirMemoria();
                 document.getElementById('horasTrabalho').value = '';
                 renderizarServicos(cliente);
+                if (cliente.ordemServico) calcularOrcamentoEGerarOS();
+            }
+        }
+
+        function removerServico(index) {
+            const cliente = getClienteAtivo();
+            if (cliente) {
+                cliente.servicos.splice(index, 1);
+                persistirMemoria();
+                renderizarServicos(cliente);
+                if (cliente.ordemServico) calcularOrcamentoEGerarOS();
             }
         }
 
         function renderizarServicos(cliente) {
             const ul = document.getElementById('listaServicosAdicionados');
-            ul.innerHTML = cliente.servicos.map(s => `
-                <li class="flex justify-between border-b border-gray-700 pb-1 text-gray-300">
-                    <span>${s.desc} (${s.horas}h)</span>
-                    <strong class="text-indigo-400">R$ ${s.total.toFixed(2)}</strong>
+            if (!cliente.servicos || cliente.servicos.length === 0) {
+                ul.innerHTML = '<li class="text-gray-500 italic">Nenhum item adicionado.</li>';
+                return;
+            }
+            ul.innerHTML = cliente.servicos.map((s, index) => `
+                <li class="flex justify-between items-center border-b border-gray-700 pb-1 text-gray-300">
+                    <div>
+                        <span>${s.desc} (${s.horas}h)</span>
+                        <strong class="text-indigo-400 block text-[11px]">R$ ${s.total.toFixed(2)}</strong>
+                    </div>
+                    <button onclick="removerServico(${index})" class="text-red-400 hover:text-red-300 text-xs font-semibold px-2 py-0.5 rounded bg-red-950/50 border border-red-900/60">
+                        ✕ Excluir
+                    </button>
                 </li>
             `).join('');
         }
 
-        // Insumos / Estoque
         function adicionarMaterial() {
             const cliente = getClienteAtivo();
             if (!cliente) return alert("Selecione um cliente primeiro!");
@@ -384,20 +501,40 @@
                 persistirMemoria();
                 document.getElementById('qtdMaterial').value = '';
                 renderizarMateriais(cliente);
+                if (cliente.ordemServico) calcularOrcamentoEGerarOS();
+            }
+        }
+
+        function removerMaterial(index) {
+            const cliente = getClienteAtivo();
+            if (cliente) {
+                cliente.materiais.splice(index, 1);
+                persistirMemoria();
+                renderizarMateriais(cliente);
+                if (cliente.ordemServico) calcularOrcamentoEGerarOS();
             }
         }
 
         function renderizarMateriais(cliente) {
             const ul = document.getElementById('listaMateriaisAdicionados');
-            ul.innerHTML = cliente.materiais.map(m => `
-                <li class="flex justify-between border-b border-gray-700 pb-1 text-gray-300">
-                    <span>${m.desc} (x${m.qtd})</span>
-                    <strong class="text-indigo-400">R$ ${m.total.toFixed(2)}</strong>
+            if (!cliente.materiais || cliente.materiais.length === 0) {
+                ul.innerHTML = '<li class="text-gray-500 italic">Nenhum insumo adicionado.</li>';
+                return;
+            }
+            ul.innerHTML = cliente.materiais.map((m, index) => `
+                <li class="flex justify-between items-center border-b border-gray-700 pb-1 text-gray-300">
+                    <div>
+                        <span>${m.desc} (x${m.qtd})</span>
+                        <strong class="text-indigo-400 block text-[11px]">R$ ${m.total.toFixed(2)}</strong>
+                    </div>
+                    <button onclick="removerMaterial(${index})" class="text-red-400 hover:text-red-300 text-xs font-semibold px-2 py-0.5 rounded bg-red-950/50 border border-red-900/60">
+                        ✕ Excluir
+                    </button>
                 </li>
             `).join('');
         }
 
-        // Processar Orçamento & OS
+        // CÁLCULO E OS
         function calcularOrcamentoEGerarOS() {
             const cliente = getClienteAtivo();
             if (!cliente) return alert("Selecione um cliente primeiro!");
@@ -436,12 +573,12 @@
             }
         }
 
-        // Exportar Lista Completa de Clientes
+        // EXPORTAÇÕES
         function exportarListaClientes() {
-            if (clientes.length === 0) return alert("Nenhum cliente cadastrado na memória!");
+            if (clientes.length === 0) return alert("Nenhum cliente cadastrado!");
 
             const dados = [
-                ["RELATÓRIO GERAL DE CLIENTES DA MEMÓRIA"],
+                ["RELATÓRIO GERAL DE CLIENTES"],
                 [""],
                 ["ID", "Nome / Razão Social", "Telefone", "Endereço", "Status OS", "Valor Orçamento (R$)"],
                 ...clientes.map(c => [
@@ -456,12 +593,11 @@
 
             const ws = XLSX.utils.aoa_to_sheet(dados);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Clientes_Cadastrados");
+            XLSX.utils.book_append_sheet(wb, ws, "Clientes");
             
-            XLSX.writeFile(wb, `Lista_Clientes_ERP_${new Date().toISOString().slice(0,10)}.xlsx`);
+            XLSX.writeFile(wb, `Lista_Clientes_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
 
-        // Exportar Orçamento + OS Individual
         function exportarExcel() {
             const cliente = getClienteAtivo();
             if (!cliente || !cliente.ordemServico) return alert("Gere a OS do cliente antes de exportar!");
