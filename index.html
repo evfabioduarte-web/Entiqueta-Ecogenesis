@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP Core - Sistema Completo com Botão Excluir</title>
+    <title>ERP Core - Protegido por Senha de Administrador</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS para Exportação Excel -->
@@ -17,9 +17,14 @@
             <h1 class="text-xl font-bold">ERP Core & System OS</h1>
             <p class="text-xs text-indigo-200" id="mentorTip">💡 Carregando orientação estratégica...</p>
         </div>
-        <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500 px-2 py-1 rounded-full flex items-center gap-1">
-            <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span> Memória Ativa
-        </span>
+        <div class="flex items-center gap-2">
+            <button onclick="exibirSenhaHoje()" class="text-[10px] bg-indigo-900/80 hover:bg-indigo-800 border border-indigo-400 text-indigo-200 px-2 py-1 rounded transition">
+                🔑 Senha Admin Hoje
+            </button>
+            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500 px-2 py-1 rounded-full flex items-center gap-1">
+                <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span> Memória Ativa
+            </span>
+        </div>
     </header>
 
     <!-- Navegação em Abas Mobile -->
@@ -33,7 +38,7 @@
 
     <main class="p-4 max-w-lg mx-auto space-y-4">
 
-        <!-- ABA 1: GESTÃO DE CADASTROS (CLIENTES, MÃO DE OBRA E MATERIAIS) -->
+        <!-- ABA 1: GESTÃO DE CADASTROS -->
         <section id="tab-cliente" class="tab-content block space-y-4">
             <h2 class="text-lg font-bold text-indigo-300">Central de Cadastros</h2>
             
@@ -100,7 +105,7 @@
                 <ul id="listaInsumosCadastrados" class="text-xs space-y-2"></ul>
 
                 <button onclick="limparMemoriaTotal()" class="w-full mt-4 bg-red-900/40 hover:bg-red-900/80 text-red-300 border border-red-800/60 p-1.5 rounded text-[11px] font-semibold transition">
-                    ⚠️ Limpar Toda a Memória Local
+                    ⚠️ Limpar Toda a Memória Local (Requer Admin)
                 </button>
             </div>
         </section>
@@ -231,8 +236,36 @@
 
     </main>
 
-    <!-- LÓGICA DO SISTEMA COM EXCLUSÃO DE ITENS DOS ORÇAMENTOS -->
+    <!-- LÓGICA DO SISTEMA COM VALIDAÇÃO DE SENHA DO ADMINISTRADOR -->
     <script>
+        // 🔑 REGRAS DE AUTENTICAÇÃO E SENHA DO ADMIN
+        const MASTER_KEY = "ADM99"; // Chave fixa do sistema
+
+        // Gera a senha do dia dinamicamente (Ex: ADM99-24)
+        function gerarSenhaAdmin() {
+            const hoje = new Date();
+            const dia = String(hoje.getDate()).padStart(2, '0');
+            return `${MASTER_KEY}-${dia}`;
+        }
+
+        // Função para validar a senha antes de excluir qualquer item
+        function autenticarAdmin() {
+            const senhaDigitada = prompt("🔒 AÇÃO RESTRITA: Digite a senha do Administrador para confirmar a exclusão:");
+            if (!senhaDigitada) return false;
+            
+            if (senhaDigitada === gerarSenhaAdmin()) {
+                return true;
+            } else {
+                alert("❌ Senha incorreta! Operação cancelada.");
+                return false;
+            }
+        }
+
+        function exibirSenhaHoje() {
+            alert(`🔑 [PAINEL ADMIN]\nA senha de exclusão para o dia de hoje é: ${gerarSenhaAdmin()}`);
+        }
+
+        // ESTRUTURA DE MEMÓRIA
         let clientes = JSON.parse(localStorage.getItem('erp_clientes_db')) || [];
         let perfisTecnicos = JSON.parse(localStorage.getItem('erp_perfis_db')) || [
             { id: '1', desc: 'Técnico Fotovoltaico/Elétrico', valorHora: 120 },
@@ -330,42 +363,43 @@
             alert("Insumo/Equipamento salvo!");
         }
 
-        // EXCLUSÕES GERAIS
+        // EXCLUSÕES PROTEGIDAS POR SENHA ADMIN
         function deletarCliente(id, e) {
             e.stopPropagation();
-            if (confirm("Remover cliente da memória?")) {
-                clientes = clientes.filter(c => c.id !== id);
-                if (clienteAtivoId === id) clienteAtivoId = clientes.length > 0 ? clientes[0].id : null;
-                persistirMemoria();
-                atualizarUI();
-            }
+            if (!autenticarAdmin()) return;
+
+            clientes = clientes.filter(c => c.id !== id);
+            if (clienteAtivoId === id) clienteAtivoId = clientes.length > 0 ? clientes[0].id : null;
+            persistirMemoria();
+            atualizarUI();
         }
 
         function deletarPerfil(id) {
-            if (confirm("Remover este perfil técnico?")) {
-                perfisTecnicos = perfisTecnicos.filter(p => p.id !== id);
-                persistirMemoria();
-                atualizarUI();
-            }
+            if (!autenticarAdmin()) return;
+
+            perfisTecnicos = perfisTecnicos.filter(p => p.id !== id);
+            persistirMemoria();
+            atualizarUI();
         }
 
         function deletarInsumo(id) {
-            if (confirm("Remover este insumo?")) {
-                insumosEstoque = insumosEstoque.filter(i => i.id !== id);
-                persistirMemoria();
-                atualizarUI();
-            }
+            if (!autenticarAdmin()) return;
+
+            insumosEstoque = insumosEstoque.filter(i => i.id !== id);
+            persistirMemoria();
+            atualizarUI();
         }
 
         function limparMemoriaTotal() {
-            if (confirm("ATENÇÃO: Deseja apagar TODOS os dados e cadastros salvos na memória local?")) {
-                localStorage.clear();
-                clientes = [];
-                perfisTecnicos = [];
-                insumosEstoque = [];
-                clienteAtivoId = null;
-                atualizarUI();
-            }
+            if (!autenticarAdmin()) return;
+
+            localStorage.clear();
+            clientes = [];
+            perfisTecnicos = [];
+            insumosEstoque = [];
+            clienteAtivoId = null;
+            atualizarUI();
+            alert("Toda a memória foi redefinida.");
         }
 
         // ATUALIZAÇÃO DA INTERFACE (UI)
@@ -399,7 +433,7 @@
                         </div>
                         <div class="flex items-center gap-2">
                             ${c.id === clienteAtivoId ? '<span class="text-[9px] bg-indigo-600 text-white px-1.5 py-0.5 rounded font-bold">Ativo</span>' : ''}
-                            <button onclick="deletarCliente('${c.id}', event)" class="text-red-400 hover:text-red-300 text-xs px-1">✕</button>
+                            <button onclick="deletarCliente('${c.id}', event)" class="text-red-400 hover:text-red-300 text-xs px-1" title="Excluir Cliente (Requer Admin)">✕</button>
                         </div>
                     </li>
                 `).join('');
@@ -409,7 +443,7 @@
                 perfisTecnicos.map(p => `
                     <li class="p-1.5 bg-gray-900 rounded border border-gray-700 flex justify-between items-center text-gray-300">
                         <span>${p.desc} - <strong class="text-indigo-400">R$ ${p.valorHora.toFixed(2)}/h</strong></span>
-                        <button onclick="deletarPerfil('${p.id}')" class="text-red-400 text-xs">✕</button>
+                        <button onclick="deletarPerfil('${p.id}')" class="text-red-400 text-xs" title="Excluir Perfil (Requer Admin)">✕</button>
                     </li>
                 `).join('');
 
@@ -418,7 +452,7 @@
                 insumosEstoque.map(i => `
                     <li class="p-1.5 bg-gray-900 rounded border border-gray-700 flex justify-between items-center text-gray-300">
                         <span>${i.desc} - <strong class="text-indigo-400">R$ ${i.custoUnit.toFixed(2)}</strong></span>
-                        <button onclick="deletarInsumo('${i.id}')" class="text-red-400 text-xs">✕</button>
+                        <button onclick="deletarInsumo('${i.id}')" class="text-red-400 text-xs" title="Excluir Insumo (Requer Admin)">✕</button>
                     </li>
                 `).join('');
 
@@ -439,7 +473,7 @@
             return clientes.find(c => c.id === clienteAtivoId);
         }
 
-        // OPERAÇÕES DE MÃO DE OBRA E ESTOQUE (COM EXCLUSÃO INDIVIDUAL)
+        // MÃO DE OBRA E ESTOQUE (PROTEGIDOS POR SENHA ADMIN)
         function adicionarServico() {
             const cliente = getClienteAtivo();
             if (!cliente) return alert("Selecione um cliente primeiro!");
@@ -459,6 +493,8 @@
         }
 
         function removerServico(index) {
+            if (!autenticarAdmin()) return;
+
             const cliente = getClienteAtivo();
             if (cliente) {
                 cliente.servicos.splice(index, 1);
@@ -506,6 +542,8 @@
         }
 
         function removerMaterial(index) {
+            if (!autenticarAdmin()) return;
+
             const cliente = getClienteAtivo();
             if (cliente) {
                 cliente.materiais.splice(index, 1);
