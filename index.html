@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP Core - Com Clientes & OS Automática</title>
+    <title>ERP Core - Com Memória Permanente & OS Automática</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS para Exportação Excel -->
@@ -12,9 +12,14 @@
 <body class="bg-gray-900 text-gray-100 pb-20 font-sans">
 
     <!-- Header / Mentoria Estratégica -->
-    <header class="bg-indigo-700 text-white p-4 sticky top-0 z-50 shadow-lg">
-        <h1 class="text-xl font-bold">ERP Core & System OS</h1>
-        <p class="text-xs text-indigo-200" id="mentorTip">💡 Carregando orientação estratégica...</p>
+    <header class="bg-indigo-700 text-white p-4 sticky top-0 z-50 shadow-lg flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold">ERP Core & System OS</h1>
+            <p class="text-xs text-indigo-200" id="mentorTip">💡 Carregando orientação estratégica...</p>
+        </div>
+        <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500 px-2 py-1 rounded-full flex items-center gap-1">
+            <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span> Memória Ativa
+        </span>
     </header>
 
     <!-- Navegação em Abas Mobile -->
@@ -28,9 +33,9 @@
 
     <main class="p-4 max-w-lg mx-auto space-y-4">
 
-        <!-- ABA 1: CADASTRO E LISTA DE CLIENTES -->
+        <!-- ABA 1: CADASTRO, MEMÓRIA E LISTA DE CLIENTES -->
         <section id="tab-cliente" class="tab-content block space-y-4">
-            <h2 class="text-lg font-bold text-indigo-300">Gestão de Clientes</h2>
+            <h2 class="text-lg font-bold text-indigo-300">Gestão de Clientes & Memória</h2>
             <form id="formCliente" class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow space-y-3" onsubmit="salvarCliente(event)">
                 <div>
                     <label class="block text-xs text-gray-400 mb-1">Nome / Razão Social</label>
@@ -44,14 +49,23 @@
                     <label class="block text-xs text-gray-400 mb-1">Endereço Completo</label>
                     <input type="text" id="cliEndereco" placeholder="Rua, Número, Bairro, Cidade" class="w-full p-2 bg-gray-900 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-indigo-500" required>
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded font-bold text-sm transition">+ Cadastrar Cliente</button>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded font-bold text-sm transition">+ Cadastrar e Salvar na Memória</button>
             </form>
 
-            <div class="bg-gray-800 p-3 rounded-lg border border-gray-700">
-                <h3 class="text-xs font-bold text-gray-400 mb-2">Clientes Cadastrados:</h3>
+            <div class="bg-gray-800 p-3 rounded-lg border border-gray-700 space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-gray-400">Clientes Salvos na Memória:</h3>
+                    <button onclick="exportarListaClientes()" class="text-[11px] bg-emerald-700 hover:bg-emerald-600 text-white px-2 py-1 rounded font-bold transition">
+                        📊 Exportar Lista (.XLSX)
+                    </button>
+                </div>
                 <ul id="listaClientesCadastrados" class="text-xs space-y-2">
-                    <li class="text-gray-500 italic">Nenhum cliente cadastrado ainda.</li>
+                    <li class="text-gray-500 italic">Nenhum cliente salvo na memória.</li>
                 </ul>
+
+                <button onclick="limparMemoriaTotal()" class="w-full mt-4 bg-red-900/40 hover:bg-red-900/80 text-red-300 border border-red-800/60 p-1.5 rounded text-[11px] font-semibold transition">
+                    ⚠️ Limpar Memória do Navegador
+                </button>
             </div>
         </section>
 
@@ -59,7 +73,7 @@
         <section id="tab-servicos" class="tab-content hidden space-y-4">
             <!-- Selector de Cliente -->
             <div class="bg-indigo-950/70 border border-indigo-800 p-2.5 rounded-lg">
-                <label class="block text-xs text-indigo-300 font-semibold mb-1">Selecione o Cliente:</label>
+                <label class="block text-xs text-indigo-300 font-semibold mb-1">Selecione o Cliente na Memória:</label>
                 <select onchange="selecionarClienteGlobal(this.value)" class="cliente-selector w-full p-2 bg-gray-900 border border-indigo-700 rounded text-xs text-white">
                     <option value="">-- Escolha um cliente --</option>
                 </select>
@@ -77,7 +91,7 @@
                 <button type="button" onclick="adicionarServico()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded font-bold text-sm transition">Adicionar Mão de Obra</button>
             </div>
             <div class="bg-gray-800 p-3 rounded-lg border border-gray-700">
-                <h3 class="text-xs font-bold text-gray-400 mb-2">Itens Adicionados ao Cliente Ativo:</h3>
+                <h3 class="text-xs font-bold text-gray-400 mb-2">Itens Salvos para o Cliente Ativo:</h3>
                 <ul id="listaServicosAdicionados" class="text-xs space-y-2"></ul>
             </div>
         </section>
@@ -86,7 +100,7 @@
         <section id="tab-estoque" class="tab-content hidden space-y-4">
             <!-- Selector de Cliente -->
             <div class="bg-indigo-950/70 border border-indigo-800 p-2.5 rounded-lg">
-                <label class="block text-xs text-indigo-300 font-semibold mb-1">Selecione o Cliente:</label>
+                <label class="block text-xs text-indigo-300 font-semibold mb-1">Selecione o Cliente na Memória:</label>
                 <select onchange="selecionarClienteGlobal(this.value)" class="cliente-selector w-full p-2 bg-gray-900 border border-indigo-700 rounded text-xs text-white">
                     <option value="">-- Escolha um cliente --</option>
                 </select>
@@ -106,7 +120,7 @@
                 <button type="button" onclick="adicionarMaterial()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded font-bold text-sm transition">Adicionar Insumo</button>
             </div>
             <div class="bg-gray-800 p-3 rounded-lg border border-gray-700">
-                <h3 class="text-xs font-bold text-gray-400 mb-2">Insumos no Orçamento:</h3>
+                <h3 class="text-xs font-bold text-gray-400 mb-2">Insumos Salvos no Orçamento:</h3>
                 <ul id="listaMateriaisAdicionados" class="text-xs space-y-2"></ul>
             </div>
         </section>
@@ -115,7 +129,7 @@
         <section id="tab-orcamento" class="tab-content hidden space-y-4">
             <!-- Selector de Cliente -->
             <div class="bg-indigo-950/70 border border-indigo-800 p-2.5 rounded-lg">
-                <label class="block text-xs text-indigo-300 font-semibold mb-1">Selecione o Cliente:</label>
+                <label class="block text-xs text-indigo-300 font-semibold mb-1">Selecione o Cliente na Memória:</label>
                 <select onchange="selecionarClienteGlobal(this.value)" class="cliente-selector w-full p-2 bg-gray-900 border border-indigo-700 rounded text-xs text-white">
                     <option value="">-- Escolha um cliente --</option>
                 </select>
@@ -168,7 +182,7 @@
         <section id="tab-gestao" class="tab-content hidden space-y-4">
             <!-- Selector de Cliente -->
             <div class="bg-indigo-950/70 border border-indigo-800 p-2.5 rounded-lg">
-                <label class="block text-xs text-indigo-300 font-semibold mb-1">Selecione o Cliente:</label>
+                <label class="block text-xs text-indigo-300 font-semibold mb-1">Selecione o Cliente na Memória:</label>
                 <select onchange="selecionarClienteGlobal(this.value)" class="cliente-selector w-full p-2 bg-gray-900 border border-indigo-700 rounded text-xs text-white">
                     <option value="">-- Escolha um cliente --</option>
                 </select>
@@ -196,20 +210,30 @@
 
     </main>
 
-    <!-- LÓGICA DO SISTEMA EM JAVASCRIPT -->
+    <!-- LÓGICA DO SISTEMA EM JAVASCRIPT COM MEMÓRIA PERSISTENTE -->
     <script>
-        // Estrutura de dados para múltiplos clientes
-        let clientes = [];
-        let clienteAtivoId = null;
+        // 1. CARREGAR DADOS DA MEMÓRIA DO NAVEGADOR (localStorage)
+        let clientes = JSON.parse(localStorage.getItem('erp_clientes_db')) || [];
+        let clienteAtivoId = clientes.length > 0 ? clientes[0].id : null;
 
         const dicasMentor = [
             "Estratégia: Cada Ordem de Serviço gerada deve conter prazo claro de execução.",
             "Compliance: Guarde o histórico de OS de cada cliente para manutenções preventivas.",
             "Marketing: Solas de pós-obra concluídas são excelentes provas sociais para novos orçamentos.",
-            "Gestão: Vincule insumos e horas técnicas diretamente ao cliente ativo antes de recalcular."
+            "Gestão: Os dados permanecem salvos localmente mesmo se você recarregar a página."
         ];
 
         document.getElementById('mentorTip').innerText = "💡 " + dicasMentor[Math.floor(Math.random() * dicasMentor.length)];
+
+        // Inicializar a interface assim que carregar
+        window.onload = function() {
+            atualizarUI();
+        };
+
+        // Salvar estado atual na memória permanente
+        function persistirMemoria() {
+            localStorage.setItem('erp_clientes_db', JSON.stringify(clientes));
+        }
 
         // Alternar abas
         function switchTab(tabId, btnElement) {
@@ -224,7 +248,7 @@
             btnElement.classList.add('border-indigo-500', 'text-indigo-400');
         }
 
-        // 1. Cadastrar Cliente
+        // Cadastrar e salvar novo cliente na memória
         function salvarCliente(e) {
             e.preventDefault();
             const id = Date.now().toString();
@@ -241,20 +265,37 @@
             };
 
             clientes.push(novoCliente);
-            document.getElementById('formCliente').reset();
-            
-            // Define o novo cliente como ativo caso nenhum estivesse selecionado
-            if (!clienteAtivoId) {
-                clienteAtivoId = id;
-            }
+            clienteAtivoId = id;
 
+            persistirMemoria(); // Grava no localStorage
+            document.getElementById('formCliente').reset();
             atualizarUI();
-            alert("Cliente cadastrado com sucesso!");
+            alert("Cliente cadastrado e salvo na memória permanente!");
         }
 
-        // Atualizar Selects e Listas em todas as Abas
+        function deletarCliente(id, e) {
+            e.stopPropagation();
+            if (confirm("Tem certeza que deseja remover este cliente da memória?")) {
+                clientes = clientes.filter(c => c.id !== id);
+                if (clienteAtivoId === id) {
+                    clienteAtivoId = clientes.length > 0 ? clientes[0].id : null;
+                }
+                persistirMemoria();
+                atualizarUI();
+            }
+        }
+
+        function limparMemoriaTotal() {
+            if (confirm("ATENÇÃO: Deseja apagar TODOS os clientes e orçamentos salvos na memória local?")) {
+                localStorage.removeItem('erp_clientes_db');
+                clientes = [];
+                clienteAtivoId = null;
+                atualizarUI();
+            }
+        }
+
+        // Sincronizar UI com os dados da memória
         function atualizarUI() {
-            // Atualizar Selectors de Cliente nas Abas
             const selectors = document.querySelectorAll('.cliente-selector');
             selectors.forEach(select => {
                 select.innerHTML = '<option value="">-- Escolha um cliente --</option>';
@@ -264,23 +305,25 @@
                 });
             });
 
-            // Atualizar Lista Visual da Aba 1
+            // Atualizar lista da Aba 1
             const listaUl = document.getElementById('listaClientesCadastrados');
             if (clientes.length === 0) {
-                listaUl.innerHTML = '<li class="text-gray-500 italic">Nenhum cliente cadastrado ainda.</li>';
+                listaUl.innerHTML = '<li class="text-gray-500 italic">Nenhum cliente salvo na memória.</li>';
             } else {
                 listaUl.innerHTML = clientes.map(c => `
-                    <li class="p-2 bg-gray-900 rounded border border-gray-700 flex justify-between items-center">
+                    <li onclick="selecionarClienteGlobal('${c.id}')" class="p-2.5 bg-gray-900 rounded border ${c.id === clienteAtivoId ? 'border-indigo-500 bg-indigo-950/30' : 'border-gray-700'} flex justify-between items-center cursor-pointer">
                         <div>
-                            <strong class="text-indigo-300 block">${c.nome}</strong>
+                            <strong class="text-indigo-300 block">${c.nome} ${c.ordemServico ? `<span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-1 rounded font-mono">${c.ordemServico.numero}</span>` : ''}</strong>
                             <span class="text-gray-400 text-[10px]">${c.telefone} | ${c.endereco}</span>
                         </div>
-                        ${c.id === clienteAtivoId ? '<span class="text-[10px] bg-indigo-900 text-indigo-300 px-2 py-0.5 rounded border border-indigo-700">Ativo</span>' : ''}
+                        <div class="flex items-center gap-2">
+                            ${c.id === clienteAtivoId ? '<span class="text-[9px] bg-indigo-600 text-white px-1.5 py-0.5 rounded font-bold">Ativo</span>' : ''}
+                            <button onclick="deletarCliente('${c.id}', event)" class="text-red-400 hover:text-red-300 text-xs px-1">✕</button>
+                        </div>
                     </li>
                 `).join('');
             }
 
-            // Atualizar listas do cliente selecionado
             const cliente = getClienteAtivo();
             if (cliente) {
                 renderizarServicos(cliente);
@@ -298,10 +341,10 @@
             return clientes.find(c => c.id === clienteAtivoId);
         }
 
-        // 2. Adicionar Mão de Obra
+        // Mão de Obra
         function adicionarServico() {
             const cliente = getClienteAtivo();
-            if (!cliente) return alert("Por favor, selecione um cliente primeiro!");
+            if (!cliente) return alert("Selecione um cliente primeiro!");
 
             const select = document.getElementById('servicoSelect');
             const horas = parseFloat(document.getElementById('horasTrabalho').value) || 0;
@@ -309,8 +352,8 @@
             const desc = select.options[select.selectedIndex].text.split('(')[0].trim();
 
             if (horas > 0) {
-                const total = horas * valorHora;
-                cliente.servicos.push({ desc, horas, valorHora, total });
+                cliente.servicos.push({ desc, horas, valorHora, total: horas * valorHora });
+                persistirMemoria();
                 document.getElementById('horasTrabalho').value = '';
                 renderizarServicos(cliente);
             }
@@ -326,10 +369,10 @@
             `).join('');
         }
 
-        // 3. Adicionar Insumos/Materiais
+        // Insumos / Estoque
         function adicionarMaterial() {
             const cliente = getClienteAtivo();
-            if (!cliente) return alert("Por favor, selecione um cliente primeiro!");
+            if (!cliente) return alert("Selecione um cliente primeiro!");
 
             const select = document.getElementById('estoqueSelect');
             const qtd = parseFloat(document.getElementById('qtdMaterial').value) || 0;
@@ -337,8 +380,8 @@
             const desc = select.options[select.selectedIndex].text.split('(')[0].trim();
 
             if (qtd > 0) {
-                const total = qtd * custoUnit;
-                cliente.materiais.push({ desc, qtd, custoUnit, total });
+                cliente.materiais.push({ desc, qtd, custoUnit, total: qtd * custoUnit });
+                persistirMemoria();
                 document.getElementById('qtdMaterial').value = '';
                 renderizarMateriais(cliente);
             }
@@ -354,18 +397,17 @@
             `).join('');
         }
 
-        // 4. Processar Custo e Gerar OS Automática
+        // Processar Orçamento & OS
         function calcularOrcamentoEGerarOS() {
             const cliente = getClienteAtivo();
-            if (!cliente) return alert("Por favor, selecione um cliente primeiro!");
+            if (!cliente) return alert("Selecione um cliente primeiro!");
 
             const custoServicos = cliente.servicos.reduce((acc, i) => acc + i.total, 0);
             const custoMateriais = cliente.materiais.reduce((acc, i) => acc + i.total, 0);
 
             cliente.custoTotal = custoServicos + custoMateriais;
-            cliente.precoFinal = cliente.custoTotal * 1.5; // Margem de 50%
+            cliente.precoFinal = cliente.custoTotal * 1.5;
 
-            // Gerar número de OS único caso ainda não tenha
             if (!cliente.ordemServico) {
                 const ano = new Date().getFullYear();
                 const randomNum = Math.floor(1000 + Math.random() * 9000);
@@ -375,7 +417,9 @@
                 };
             }
 
+            persistirMemoria();
             renderizarRelatorioOS(cliente);
+            atualizarUI();
         }
 
         function renderizarRelatorioOS(cliente) {
@@ -392,10 +436,35 @@
             }
         }
 
-        // 5. Exportar Orçamento + OS para Excel
+        // Exportar Lista Completa de Clientes
+        function exportarListaClientes() {
+            if (clientes.length === 0) return alert("Nenhum cliente cadastrado na memória!");
+
+            const dados = [
+                ["RELATÓRIO GERAL DE CLIENTES DA MEMÓRIA"],
+                [""],
+                ["ID", "Nome / Razão Social", "Telefone", "Endereço", "Status OS", "Valor Orçamento (R$)"],
+                ...clientes.map(c => [
+                    c.id, 
+                    c.nome, 
+                    c.telefone, 
+                    c.endereco, 
+                    c.ordemServico ? c.ordemServico.numero : "Sem OS", 
+                    c.precoFinal || 0
+                ])
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(dados);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Clientes_Cadastrados");
+            
+            XLSX.writeFile(wb, `Lista_Clientes_ERP_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
+
+        // Exportar Orçamento + OS Individual
         function exportarExcel() {
             const cliente = getClienteAtivo();
-            if (!cliente || !cliente.ordemServico) return alert("Processe o orçamento e gere a OS antes de exportar!");
+            if (!cliente || !cliente.ordemServico) return alert("Gere a OS do cliente antes de exportar!");
 
             const status = document.getElementById('statusOrcamento').value;
             const dataVisita = document.getElementById('dataVisita').value || "Não agendada";
